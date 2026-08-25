@@ -1,0 +1,38 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --midnight: #0A0F1A;
+  --gold: #B8914A;
+  --chalk: #F7F5F2;
+  --cream: #EDE8E1;
+  --glacier: #9BA3A8;
+}
+
+body {
+  font-family: 'DM Sans', system-ui, sans-serif;
+}
+
+.card {
+  @apply bg-white rounded-xl shadow-sm border border-gray-100 p-5;
+}
+
+.btn-primary {
+  @apply bg-midnight text-chalk px-4 py-2 rounded-lg text-sm font-medium hover:bg-gold transition-colors;
+}
+
+.btn-secondary {
+  @apply bg-white border border-gray-300 text-midnight px-4 py-2 rounded-lg text-sm font-medium hover:border-gold transition-colors;
+}
+
+.input {
+  @apply w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-gold;
+}
+
+table th {
+  @apply text-left text-xs uppercase tracking-wide text-glacier font-medium px-3 py-2;
+}
+table td {
+  @apply px-3 py-2 text-sm border-t border-gray-100;
+}
