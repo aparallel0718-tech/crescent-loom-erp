@@ -1,17 +1,24 @@
 import mongoose from 'mongoose';
 
+const SaleItemSchema = new mongoose.Schema(
+  {
+    product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
+    productName: { type: String },
+    qty: { type: Number, default: 1 },
+    sellingPrice: { type: Number, default: 0 },
+    costPrice: { type: Number, default: 0 },
+  },
+  { _id: false }
+);
+
 const SaleSchema = new mongoose.Schema(
   {
     orderId: { type: String, required: true, unique: true },
     orderDate: { type: Date, required: true, default: Date.now },
     customer: { type: mongoose.Schema.Types.ObjectId, ref: 'Customer' },
     customerName: { type: String },
-    product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
-    productName: { type: String },
-    qty: { type: Number, default: 1 },
-    sellingPrice: { type: Number, default: 0 },
+    items: { type: [SaleItemSchema], default: [] },
     discount: { type: Number, default: 0 },
-    costPrice: { type: Number, default: 0 },
     paymentMode: { type: String, enum: ['Prepaid', 'COD', 'Card', 'UPI', 'Bank Transfer'], default: 'Prepaid' },
     status: { type: String, enum: ['Placed', 'Confirmed', 'Shipped', 'Delivered', 'Returned', 'Cancelled'], default: 'Placed' },
     notes: { type: String },
@@ -20,7 +27,8 @@ const SaleSchema = new mongoose.Schema(
 );
 
 SaleSchema.virtual('netValue').get(function () {
-  return this.qty * this.sellingPrice - (this.discount || 0);
+  const itemsTotal = (this.items || []).reduce((sum, it) => sum + (it.qty || 0) * (it.sellingPrice || 0), 0);
+  return itemsTotal - (this.discount || 0);
 });
 SaleSchema.set('toJSON', { virtuals: true });
 
