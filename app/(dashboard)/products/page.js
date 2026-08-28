@@ -63,6 +63,7 @@ export default function ProductsPage() {
   const [editing, setEditing] = useState(null);
   const [editForm, setEditForm] = useState(emptyEditForm());
   const [saving, setSaving] = useState(false);
+  const [selectedIds, setSelectedIds] = useState([]);
 
   async function load() {
     setLoading(true);
@@ -220,13 +221,55 @@ export default function ProductsPage() {
     else setError((await res.json()).error || 'Delete failed');
   }
 
+  function toggleSelect(id) {
+    setSelectedIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
+  }
+
+  function toggleSelectAll() {
+    if (selectedIds.length === rows.length) {
+      setSelectedIds([]);
+    } else {
+      setSelectedIds(rows.map((r) => r._id));
+    }
+  }
+
+  async function handleBulkDelete() {
+    if (selectedIds.length === 0) return;
+    if (!confirm(`Delete ${selectedIds.length} selected product(s)? This cannot be undone.`)) return;
+    setError('');
+    try {
+      for (const id of selectedIds) {
+        const res = await fetch(`/api/products/${id}`, { method: 'DELETE' });
+        if (!res.ok) {
+          const err = await res.json();
+          throw new Error(err.error || `Failed to delete one item`);
+        }
+      }
+      setSelectedIds([]);
+      load();
+    } catch (e) {
+      setError(e.message);
+    }
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold">Products &amp; Styles</h1>
-        <button className="btn-primary" onClick={openAdd}>
-          + Add Design
-        </button>
+        <div className="flex items-center gap-2">
+          {selectedIds.length > 0 && (
+            <button
+              type="button"
+              className="text-xs text-red-600 border border-red-300 rounded px-3 py-2 hover:bg-red-50"
+              onClick={handleBulkDelete}
+            >
+              Delete Selected ({selectedIds.length})
+            </button>
+          )}
+          <button className="btn-primary" onClick={openAdd}>
+            + Add Design
+          </button>
+        </div>
       </div>
 
       {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
@@ -240,6 +283,13 @@ export default function ProductsPage() {
           <table className="w-full">
             <thead>
               <tr>
+                <th>
+                  <input
+                    type="checkbox"
+                    checked={rows.length > 0 && selectedIds.length === rows.length}
+                    onChange={toggleSelectAll}
+                  />
+                </th>
                 <th>Name</th>
                 <th>SKU</th>
                 <th>Category</th>
@@ -256,6 +306,13 @@ export default function ProductsPage() {
             <tbody>
               {rows.map((row) => (
                 <tr key={row._id}>
+                  <td>
+                    <input
+                      type="checkbox"
+                      checked={selectedIds.includes(row._id)}
+                      onChange={() => toggleSelect(row._id)}
+                    />
+                  </td>
                   <td>{row.name}</td>
                   <td>{row.sku}</td>
                   <td>{row.category}</td>
