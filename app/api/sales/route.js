@@ -1,6 +1,37 @@
-import { makeListCreateHandler } from "../../../lib/crudHandlers";
-import Sale from "../../../models/Sale";
+import { NextResponse } from 'next/server';
+import { getServerSession } from 'next-auth';
+import { authOptions, canAccess } from '../../../lib/auth';
+import { dbConnect } from '../../../lib/mongodb';
+import Sale from '../../../models/Sale';
+import { applyInventoryDelta } from '../../../lib/inventorySync';
 
-const handlers = makeListCreateHandler(Sale, { section: "sales" });
-export const GET = handlers.GET;
-export const POST = handlers.POST;
+async function requireSession(section) {
+  const session = await getServerSession(authOptions);
+  if (!session) return { error: NextResponse.json({ error: 'Unauthorized' }, { status: 401 }) };
+  if (section && !canAccess(session.user.role, section)) {
+    return { error: NextResponse.json({ error: 'Forbidden' }, { status: 403 }) };
+  }
+  return { session };
+}
+
+export async function GET(request) {
+  const { error } = await requireSession('sales');
+  if (error) return error;
+  await dbConnect();
+  const items = await Sale.find({}).sort({ createdAt: -1 }).lean({ virtuals: true });
+  return NextResponse.json(items);
+}
+
+export async function POST(request) {
+  const { error } = await requireSession('sales');
+  if (error) return error;
+  await dbConnect();
+  const body = await request.json();
+  try {
+    const created = await Sale.create(body);
+    await applyInventoryDelta(body.items, 'sold', 1);
+    return NextResponse.json(created, { status: 201 });
+  } catch (e) {
+    return NextResponse.json({ error: e.message }, { status: 400 });
+  }
+}
