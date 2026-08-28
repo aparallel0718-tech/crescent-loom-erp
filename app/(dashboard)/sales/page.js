@@ -190,7 +190,7 @@ export default function SalesPage() {
                       </div>
                     ))}
                   </td>
-                  <td>₹{row.netValue ?? ''}</td>
+                  <td>₹{(row.items || []).reduce((sum, it) => sum + (it.qty || 0) * (it.sellingPrice || 0), 0) - (row.discount || 0)}</td>
                   <td>{row.paymentMode}</td>
                   <td>{row.status}</td>
                   <td className="text-right whitespace-nowrap">
