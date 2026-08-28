@@ -151,12 +151,12 @@ export default function CrudPage({ config }) {
                     >
                       <option value="">Select…</option>
                       {(f.dynamicSource
-                        ? (dynamicOptions[f.key] || []).map((o) => ({
-                            value: o[f.dynamicSource.valueKey],
-                            label: o[f.dynamicSource.labelKey],
-                          }))
-                        : f.options || []
-                      ).map((o) => (
+  ? (dynamicOptions[f.key] || []).map((o) => ({
+      value: o[f.dynamicSource.valueKey],
+      label: f.dynamicSource.labelFn ? f.dynamicSource.labelFn(o) : o[f.dynamicSource.labelKey],
+    }))
+  : f.options || []
+).map((o) => (
                         <option key={o.value} value={o.value}>
                           {o.label}
                         </option>
