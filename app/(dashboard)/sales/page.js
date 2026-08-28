@@ -147,7 +147,7 @@ export default function SalesPage() {
         ...items[index],
         size,
         product: variant ? variant._id : '',
-        productName: variant ? `${variant.name} — ${variant.colour} — ${variant.size}` : '',
+        productName: variant ? variant.name : '',
         sellingPrice: variant ? variant.sellingPrice ?? items[index].sellingPrice : items[index].sellingPrice,
         costPrice: variant ? (variant.costPrice ?? items[index].costPrice) : items[index].costPrice,
       };
@@ -246,7 +246,8 @@ export default function SalesPage() {
                 <th>Order ID</th>
                 <th>Date</th>
                 <th>Customer</th>
-                <th>Products</th>
+                <th>Product</th>
+<th>Size</th>
                 <th>Total</th>
                 <th>Payment</th>
                 <th>Status</th>
@@ -260,12 +261,19 @@ export default function SalesPage() {
                   <td>{row.orderDate ? new Date(row.orderDate).toLocaleDateString('en-IN') : '—'}</td>
                   <td>{row.customerName}</td>
                   <td>
-                    {(row.items || []).map((it, i) => (
-                      <div key={i} className="text-xs">
-                        {it.productName} × {it.qty}
-                      </div>
-                    ))}
-                  </td>
+  {(row.items || []).map((it, i) => (
+    <div key={i} className="text-xs">
+      {it.productName}
+    </div>
+  ))}
+</td>
+<td>
+  {(row.items || []).map((it, i) => (
+    <div key={i} className="text-xs">
+      {it.size} × {it.qty}
+    </div>
+  ))}
+</td>
                   <td>
                     ₹
                     {(row.items || []).reduce((sum, it) => sum + (it.qty || 0) * (it.sellingPrice || 0), 0) -
