@@ -3,9 +3,33 @@ import { useEffect, useState } from 'react';
 
 const PAYMENT_MODES = ['Prepaid', 'COD', 'Card', 'UPI', 'Bank Transfer'];
 const STATUSES = ['Placed', 'Confirmed', 'Shipped', 'Delivered', 'Returned', 'Cancelled'];
+const SIZE_ORDER = ['XS', 'S', 'M', 'L', 'XL', 'XXL', 'XXXL'];
+
+// Groups product variants (e.g. GRAPHITE BLACK - XL / L / M) into one "design"
+// using the SKU with the size segment stripped off, e.g. CL-PL-GB-XL -> CL-PL-GB
+function groupByDesign(products) {
+  const map = {};
+  for (const p of products) {
+    const parts = (p.sku || '').split('-');
+    const designKey = parts.length > 1 ? parts.slice(0, -1).join('-') : p.sku || p._id;
+    if (!map[designKey]) {
+      map[designKey] = { key: designKey, name: p.name, colour: p.colour, variants: [] };
+    }
+    map[designKey].variants.push(p);
+  }
+  const designs = Object.values(map);
+  designs.forEach((d) => {
+    d.variants.sort((a, b) => {
+      const ai = SIZE_ORDER.indexOf(a.size);
+      const bi = SIZE_ORDER.indexOf(b.size);
+      return (ai === -1 ? 99 : ai) - (bi === -1 ? 99 : bi);
+    });
+  });
+  return designs;
+}
 
 function emptyItem() {
-  return { product: '', productName: '', qty: 1, sellingPrice: 0, costPrice: 0 };
+  return { designKey: '', size: '', product: '', productName: '', qty: 1, sellingPrice: 0, costPrice: 0 };
 }
 
 function emptyOrder() {
@@ -31,6 +55,8 @@ export default function SalesPage() {
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyOrder());
+
+  const designs = groupByDesign(products);
 
   async function load() {
     setLoading(true);
@@ -58,8 +84,11 @@ export default function SalesPage() {
     setShowForm(true);
   }
 
+  // Reconstruct designKey/size for each saved item using the products list (SKU prefix match)
   function openEdit(row) {
     setEditing(row);
+    const bySku = {};
+    products.forEach((p) => (bySku[p._id] = p));
     setForm({
       orderId: row.orderId || '',
       orderDate: row.orderDate ? new Date(row.orderDate).toISOString().slice(0, 10) : '',
@@ -67,13 +96,20 @@ export default function SalesPage() {
       customerName: row.customerName || '',
       items:
         row.items && row.items.length
-          ? row.items.map((it) => ({
-              product: it.product || '',
-              productName: it.productName || '',
-              qty: it.qty || 1,
-              sellingPrice: it.sellingPrice || 0,
-              costPrice: it.costPrice || 0,
-            }))
+          ? row.items.map((it) => {
+              const p = bySku[it.product];
+              const parts = p ? (p.sku || '').split('-') : [];
+              const designKey = p ? (parts.length > 1 ? parts.slice(0, -1).join('-') : p.sku) : '';
+              return {
+                designKey,
+                size: it.size || (p ? p.size : ''),
+                product: it.product || '',
+                productName: it.productName || '',
+                qty: it.qty || 1,
+                sellingPrice: it.sellingPrice || 0,
+                costPrice: it.costPrice || 0,
+              };
+            })
           : [emptyItem()],
       discount: row.discount || 0,
       paymentMode: row.paymentMode || 'Prepaid',
@@ -94,18 +130,35 @@ export default function SalesPage() {
     setForm((prev) => ({ ...prev, [key]: value }));
   }
 
-  function updateItem(index, key, value) {
+  function updateItemDesign(index, designKey) {
+    setForm((prev) => {
+      const items = [...prev.items];
+      items[index] = { ...items[index], designKey, size: '', product: '', productName: '' };
+      return { ...prev, items };
+    });
+  }
+
+  function updateItemSize(index, size) {
+    setForm((prev) => {
+      const items = [...prev.items];
+      const design = designs.find((d) => d.key === items[index].designKey);
+      const variant = design ? design.variants.find((v) => v.size === size) : null;
+      items[index] = {
+        ...items[index],
+        size,
+        product: variant ? variant._id : '',
+        productName: variant ? `${variant.name} — ${variant.colour} — ${variant.size}` : '',
+        sellingPrice: variant ? variant.sellingPrice ?? items[index].sellingPrice : items[index].sellingPrice,
+        costPrice: variant ? (variant.costPrice ?? items[index].costPrice) : items[index].costPrice,
+      };
+      return { ...prev, items };
+    });
+  }
+
+  function updateItemField(index, key, value) {
     setForm((prev) => {
       const items = [...prev.items];
       items[index] = { ...items[index], [key]: value };
-      if (key === 'product') {
-        const p = products.find((pr) => pr._id === value);
-        if (p) {
-          items[index].productName = `${p.name} — ${p.colour} — ${p.size}`;
-          items[index].sellingPrice = p.sellingPrice ?? items[index].sellingPrice;
-          items[index].costPrice = p.cost ?? p.costPrice ?? items[index].costPrice;
-        }
-      }
       return { ...prev, items };
     });
   }
@@ -132,12 +185,35 @@ export default function SalesPage() {
   async function handleSubmit(e) {
     e.preventDefault();
     setError('');
+    const missing = form.items.some((it) => !it.product);
+    if (missing) {
+      setError('Select both a product and a size for every line.');
+      return;
+    }
+    const payload = {
+      orderId: form.orderId,
+      orderDate: form.orderDate,
+      customer: form.customer,
+      customerName: form.customerName,
+      items: form.items.map((it) => ({
+        product: it.product,
+        productName: it.productName,
+        size: it.size,
+        qty: Number(it.qty) || 0,
+        sellingPrice: Number(it.sellingPrice) || 0,
+        costPrice: Number(it.costPrice) || 0,
+      })),
+      discount: Number(form.discount) || 0,
+      paymentMode: form.paymentMode,
+      status: form.status,
+      notes: form.notes,
+    };
     const method = editing ? 'PATCH' : 'POST';
     const url = editing ? `/api/sales/${editing._id}` : '/api/sales';
     const res = await fetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(form),
+      body: JSON.stringify(payload),
     });
     if (res.ok) {
       setShowForm(false);
@@ -190,7 +266,11 @@ export default function SalesPage() {
                       </div>
                     ))}
                   </td>
-                  <td>₹{(row.items || []).reduce((sum, it) => sum + (it.qty || 0) * (it.sellingPrice || 0), 0) - (row.discount || 0)}</td>
+                  <td>
+                    ₹
+                    {(row.items || []).reduce((sum, it) => sum + (it.qty || 0) * (it.sellingPrice || 0), 0) -
+                      (row.discount || 0)}
+                  </td>
                   <td>{row.paymentMode}</td>
                   <td>{row.status}</td>
                   <td className="text-right whitespace-nowrap">
@@ -212,7 +292,7 @@ export default function SalesPage() {
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <form
             onSubmit={handleSubmit}
-            className="bg-white rounded-xl p-6 w-full max-w-3xl max-h-[90vh] overflow-y-auto"
+            className="bg-white rounded-xl p-6 w-full max-w-4xl max-h-[90vh] overflow-y-auto"
           >
             <h2 className="text-lg font-semibold mb-4">
               {editing ? 'Edit' : 'Add'} Sale
@@ -267,64 +347,84 @@ export default function SalesPage() {
                 </button>
               </div>
               <div className="space-y-3">
-                {form.items.map((item, index) => (
-                  <div key={index} className="grid grid-cols-1 sm:grid-cols-5 gap-2 items-end border-b pb-3">
-                    <div className="sm:col-span-2">
-                      <label className="block text-xs mb-1 text-glacier">Product</label>
-                      <select
-                        className="input"
-                        value={item.product}
-                        onChange={(e) => updateItem(index, 'product', e.target.value)}
-                      >
-                        <option value="">Select…</option>
-                        {products.map((p) => (
-                          <option key={p._id} value={p._id}>
-                            {p.name} — {p.colour} — {p.size}
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block text-xs mb-1 text-glacier">Qty</label>
-                      <input
-                        className="input"
-                        type="number"
-                        min="1"
-                        value={item.qty}
-                        onChange={(e) => updateItem(index, 'qty', Number(e.target.value))}
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs mb-1 text-glacier">Price</label>
-                      <input
-                        className="input"
-                        type="number"
-                        value={item.sellingPrice}
-                        onChange={(e) => updateItem(index, 'sellingPrice', Number(e.target.value))}
-                      />
-                    </div>
-                    <div className="flex gap-2">
-                      <div className="flex-1">
-                        <label className="block text-xs mb-1 text-glacier">Cost</label>
+                {form.items.map((item, index) => {
+                  const design = designs.find((d) => d.key === item.designKey);
+                  return (
+                    <div key={index} className="grid grid-cols-1 sm:grid-cols-6 gap-2 items-end border-b pb-3">
+                      <div className="sm:col-span-2">
+                        <label className="block text-xs mb-1 text-glacier">Product</label>
+                        <select
+                          className="input"
+                          value={item.designKey}
+                          onChange={(e) => updateItemDesign(index, e.target.value)}
+                        >
+                          <option value="">Select…</option>
+                          {designs.map((d) => (
+                            <option key={d.key} value={d.key}>
+                              {d.name} — {d.colour}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs mb-1 text-glacier">Size</label>
+                        <select
+                          className="input"
+                          value={item.size}
+                          disabled={!design}
+                          onChange={(e) => updateItemSize(index, e.target.value)}
+                        >
+                          <option value="">Select…</option>
+                          {design &&
+                            design.variants.map((v) => (
+                              <option key={v._id} value={v.size}>
+                                {v.size}
+                              </option>
+                            ))}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block text-xs mb-1 text-glacier">Qty</label>
                         <input
                           className="input"
                           type="number"
-                          value={item.costPrice}
-                          onChange={(e) => updateItem(index, 'costPrice', Number(e.target.value))}
+                          min="1"
+                          value={item.qty}
+                          onChange={(e) => updateItemField(index, 'qty', Number(e.target.value))}
                         />
                       </div>
-                      {form.items.length > 1 && (
-                        <button
-                          type="button"
-                          className="text-xs text-red-500 mb-2"
-                          onClick={() => removeItemRow(index)}
-                        >
-                          Remove
-                        </button>
-                      )}
+                      <div>
+                        <label className="block text-xs mb-1 text-glacier">Price</label>
+                        <input
+                          className="input"
+                          type="number"
+                          value={item.sellingPrice}
+                          onChange={(e) => updateItemField(index, 'sellingPrice', Number(e.target.value))}
+                        />
+                      </div>
+                      <div className="flex gap-2">
+                        <div className="flex-1">
+                          <label className="block text-xs mb-1 text-glacier">Cost</label>
+                          <input
+                            className="input"
+                            type="number"
+                            value={item.costPrice}
+                            onChange={(e) => updateItemField(index, 'costPrice', Number(e.target.value))}
+                          />
+                        </div>
+                        {form.items.length > 1 && (
+                          <button
+                            type="button"
+                            className="text-xs text-red-500 mb-2"
+                            onClick={() => removeItemRow(index)}
+                          >
+                            Remove
+                          </button>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
 

@@ -4,13 +4,13 @@ const SaleItemSchema = new mongoose.Schema(
   {
     product: { type: mongoose.Schema.Types.ObjectId, ref: 'Product' },
     productName: { type: String },
+    size: { type: String },
     qty: { type: Number, default: 1 },
     sellingPrice: { type: Number, default: 0 },
     costPrice: { type: Number, default: 0 },
   },
   { _id: false }
 );
-
 const SaleSchema = new mongoose.Schema(
   {
     orderId: { type: String, required: true, unique: true },
