@@ -17,7 +17,8 @@ const NAV = [
   { href: '/expenses', label: 'Operating Expenses', section: 'expenses' },
   { href: '/pnl', label: 'Profit & Loss', section: 'pnl' },
   { href: '/analytics', label: 'Analytics', section: 'analytics' },
-  { href: '/alerts', label: 'Alerts', section: 'alerts' },
+  { href: '/alerts', label: 'Alerts', section: 'alerts' }, 
+  { href: '/cost-templates', label: 'Cost Templates', section: 'products' },
   { href: '/users', label: 'Team & Access', section: 'users' },
 ];
 
