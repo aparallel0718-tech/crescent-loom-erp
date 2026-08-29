@@ -26,6 +26,7 @@ function emptyDesign() {
     sellingPrice: 0,
     mrp: 0,
     discountPct: 0,
+    costTemplate: '',
     costPrice: 0,
     reorderLevel: 5,
     status: 'active',
@@ -46,7 +47,9 @@ function emptyEditForm() {
     sellingPrice: 0,
     mrp: 0,
     discountPct: 0,
+    costTemplate: '',
     costPrice: 0,
+    costTemplateAppliedTotal: null,
     reorderLevel: 5,
     status: 'active',
     notes: '',
@@ -57,6 +60,7 @@ export default function ProductsPage() {
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+  const [templates, setTemplates] = useState([]);
   const [showAdd, setShowAdd] = useState(false);
   const [designForm, setDesignForm] = useState(emptyDesign());
   const [showEdit, setShowEdit] = useState(false);
@@ -79,9 +83,24 @@ export default function ProductsPage() {
     }
   }
 
+  async function loadTemplates() {
+    try {
+      const res = await fetch('/api/cost-templates');
+      if (res.ok) setTemplates(await res.json());
+    } catch {
+      // non-fatal
+    }
+  }
+
   useEffect(() => {
     load();
+    loadTemplates();
   }, []);
+
+  function templateTotal(tpl) {
+    if (!tpl) return 0;
+    return tpl.totalCost ?? (tpl.lines || []).reduce((s, l) => s + (l.cost || 0), 0);
+  }
 
   function openAdd() {
     setDesignForm(emptyDesign());
@@ -90,6 +109,27 @@ export default function ProductsPage() {
 
   function updateDesignField(key, value) {
     setDesignForm((prev) => ({ ...prev, [key]: value }));
+  }
+
+  function updateDesignTemplate(templateId) {
+    const tpl = templates.find((t) => t._id === templateId);
+    setDesignForm((prev) => ({
+      ...prev,
+      costTemplate: templateId,
+      costPrice: tpl ? templateTotal(tpl) : prev.costPrice,
+    }));
+  }
+
+  function updateDesignCollection(value) {
+    setDesignForm((prev) => {
+      const match = templates.find((t) => t.name.trim().toLowerCase() === value.trim().toLowerCase());
+      return {
+        ...prev,
+        productCollection: value,
+        costTemplate: match ? match._id : prev.costTemplate,
+        costPrice: match ? templateTotal(match) : prev.costPrice,
+      };
+    });
   }
 
   function updateDesignQty(size, value) {
@@ -129,7 +169,9 @@ export default function ProductsPage() {
             sellingPrice: Number(designForm.sellingPrice) || 0,
             mrp: Number(designForm.mrp) || 0,
             discountPct: Number(designForm.discountPct) || 0,
+            costTemplate: designForm.costTemplate || undefined,
             costPrice: Number(designForm.costPrice) || 0,
+            costTemplateAppliedTotal: designForm.costTemplate ? Number(designForm.costPrice) || 0 : undefined,
             reorderLevel: Number(designForm.reorderLevel) || 0,
             status: designForm.status,
             notes: designForm.notes,
@@ -186,7 +228,9 @@ export default function ProductsPage() {
       sellingPrice: row.sellingPrice || 0,
       mrp: row.mrp || 0,
       discountPct: row.discountPct || 0,
+      costTemplate: row.costTemplate || '',
       costPrice: row.costPrice || 0,
+      costTemplateAppliedTotal: row.costTemplateAppliedTotal ?? null,
       reorderLevel: row.reorderLevel || 0,
       status: row.status || 'active',
       notes: row.notes || '',
@@ -198,13 +242,33 @@ export default function ProductsPage() {
     setEditForm((prev) => ({ ...prev, [key]: value }));
   }
 
+  function updateEditTemplate(templateId) {
+    const tpl = templates.find((t) => t._id === templateId);
+    setEditForm((prev) => ({
+      ...prev,
+      costTemplate: templateId,
+      costPrice: tpl ? templateTotal(tpl) : prev.costPrice,
+      costTemplateAppliedTotal: tpl ? templateTotal(tpl) : prev.costTemplateAppliedTotal,
+    }));
+  }
+
+  function recalcFromTemplate() {
+    const tpl = templates.find((t) => t._id === editForm.costTemplate);
+    if (!tpl) return;
+    const newTotal = templateTotal(tpl);
+    setEditForm((prev) => ({ ...prev, costPrice: newTotal, costTemplateAppliedTotal: newTotal }));
+  }
+
   async function handleEditSubmit(e) {
     e.preventDefault();
     setError('');
     const res = await fetch(`/api/products/${editing._id}`, {
       method: 'PATCH',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(editForm),
+      body: JSON.stringify({
+        ...editForm,
+        costTemplate: editForm.costTemplate || undefined,
+      }),
     });
     if (res.ok) {
       setShowEdit(false);
@@ -252,6 +316,19 @@ export default function ProductsPage() {
     }
   }
 
+  async function quickRecalc(row) {
+    const tpl = templates.find((t) => t._id === row.costTemplate);
+    if (!tpl) return;
+    const newTotal = templateTotal(tpl);
+    const res = await fetch(`/api/products/${row._id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ costPrice: newTotal, costTemplateAppliedTotal: newTotal }),
+    });
+    if (res.ok) load();
+    else setError((await res.json()).error || 'Recalculate failed');
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
@@ -293,46 +370,58 @@ export default function ProductsPage() {
                 <th>Name</th>
                 <th>SKU</th>
                 <th>Category</th>
-                <th>Collection</th>
                 <th>Size</th>
                 <th>Colour</th>
                 <th>Selling Price</th>
-                <th>MRP</th>
                 <th>Cost</th>
                 <th>Status</th>
                 <th></th>
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => (
-                <tr key={row._id}>
-                  <td>
-                    <input
-                      type="checkbox"
-                      checked={selectedIds.includes(row._id)}
-                      onChange={() => toggleSelect(row._id)}
-                    />
-                  </td>
-                  <td>{row.name}</td>
-                  <td>{row.sku}</td>
-                  <td>{row.category}</td>
-                  <td>{row.productCollection}</td>
-                  <td>{row.size}</td>
-                  <td>{row.colour}</td>
-                  <td>₹{row.sellingPrice}</td>
-                  <td>₹{row.mrp}</td>
-                  <td>₹{row.costPrice}</td>
-                  <td>{row.status}</td>
-                  <td className="text-right whitespace-nowrap">
-                    <button className="text-xs text-gold mr-3" onClick={() => openEdit(row)}>
-                      Edit
-                    </button>
-                    <button className="text-xs text-red-500" onClick={() => handleDelete(row)}>
-                      Delete
-                    </button>
-                  </td>
-                </tr>
-              ))}
+              {rows.map((row) => {
+                const tpl = templates.find((t) => t._id === row.costTemplate);
+                const currentTplTotal = tpl ? templateTotal(tpl) : null;
+                const isStale =
+                  tpl && row.costTemplateAppliedTotal != null && currentTplTotal !== row.costTemplateAppliedTotal;
+                return (
+                  <tr key={row._id}>
+                    <td>
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.includes(row._id)}
+                        onChange={() => toggleSelect(row._id)}
+                      />
+                    </td>
+                    <td>{row.name}</td>
+                    <td>{row.sku}</td>
+                    <td>{row.category}</td>
+                    <td>{row.size}</td>
+                    <td>{row.colour}</td>
+                    <td>₹{row.sellingPrice}</td>
+                    <td>
+                      ₹{row.costPrice}
+                      {isStale && (
+                        <div className="text-xs text-amber-600 mt-1">
+                          Template changed: ₹{row.costTemplateAppliedTotal} → ₹{currentTplTotal}{' '}
+                          <button type="button" className="underline" onClick={() => quickRecalc(row)}>
+                            Update
+                          </button>
+                        </div>
+                      )}
+                    </td>
+                    <td>{row.status}</td>
+                    <td className="text-right whitespace-nowrap">
+                      <button className="text-xs text-gold mr-3" onClick={() => openEdit(row)}>
+                        Edit
+                      </button>
+                      <button className="text-xs text-red-500" onClick={() => handleDelete(row)}>
+                        Delete
+                      </button>
+                    </td>
+                  </tr>
+                );
+              })}
             </tbody>
           </table>
         )}
@@ -368,7 +457,7 @@ export default function ProductsPage() {
               </div>
               <div>
                 <label className="block text-xs mb-1 text-glacier">Collection</label>
-                <input className="input" value={designForm.productCollection} onChange={(e) => updateDesignField('productCollection', e.target.value)} />
+                <input className="input" value={designForm.productCollection} onChange={(e) => updateDesignCollection(e.target.value)} />
               </div>
               <div>
                 <label className="block text-xs mb-1 text-glacier">Colour</label>
@@ -391,7 +480,18 @@ export default function ProductsPage() {
                 <input className="input" type="number" value={designForm.discountPct} onChange={(e) => updateDesignField('discountPct', e.target.value)} />
               </div>
               <div>
-                <label className="block text-xs mb-1 text-glacier">Costing</label>
+                <label className="block text-xs mb-1 text-glacier">Cost Template</label>
+                <select className="input" value={designForm.costTemplate} onChange={(e) => updateDesignTemplate(e.target.value)}>
+                  <option value="">None (enter manually)</option>
+                  {templates.map((t) => (
+                    <option key={t._id} value={t._id}>
+                      {t.name} — ₹{templateTotal(t)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs mb-1 text-glacier">Costing (from template, editable)</label>
                 <input className="input" type="number" value={designForm.costPrice} onChange={(e) => updateDesignField('costPrice', e.target.value)} />
               </div>
               <div>
@@ -492,8 +592,31 @@ export default function ProductsPage() {
                 <input className="input" type="number" value={editForm.discountPct} onChange={(e) => updateEditField('discountPct', Number(e.target.value))} />
               </div>
               <div>
+                <label className="block text-xs mb-1 text-glacier">Cost Template</label>
+                <select className="input" value={editForm.costTemplate} onChange={(e) => updateEditTemplate(e.target.value)}>
+                  <option value="">None</option>
+                  {templates.map((t) => (
+                    <option key={t._id} value={t._id}>
+                      {t.name} — ₹{templateTotal(t)}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <div>
                 <label className="block text-xs mb-1 text-glacier">Costing</label>
-                <input className="input" type="number" value={editForm.costPrice} onChange={(e) => updateEditField('costPrice', Number(e.target.value))} />
+                <div className="flex gap-2">
+                  <input
+                    className="input"
+                    type="number"
+                    value={editForm.costPrice}
+                    onChange={(e) => updateEditField('costPrice', Number(e.target.value))}
+                  />
+                  {editForm.costTemplate && (
+                    <button type="button" className="btn-secondary text-xs whitespace-nowrap" onClick={recalcFromTemplate}>
+                      Recalc
+                    </button>
+                  )}
+                </div>
               </div>
               <div>
                 <label className="block text-xs mb-1 text-glacier">Reorder Level</label>
