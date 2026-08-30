@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import StatCard from '../../../components/StatCard';
+import StatCard from '../../../components/StatCard';import RevenueChart from '../../../components/RevenueChart';
+import ExpenseDonut from '../../../components/ExpenseDonut';
 import { inr, pct } from '../../../lib/format';const Icon = {
   revenue: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 2v20M17 6.5c0-2-2-3.5-5-3.5s-5 1.5-5 3.5 2 3 5 3 5 1 5 3.5-2 3.5-5 3.5-5-1.5-5-3.5" /></svg>
@@ -92,7 +93,18 @@ export default function DashboardPage() {
         <StatCard label="COGS" value={inr(data.cogs)} icon={Icon.cogs} />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        <RevenueChart data={data.dailySeries} />
+        <ExpenseDonut
+          data={[
+            { name: 'Marketing', value: data.marketingExpense },
+            { name: 'Operating', value: data.operatingExpense },
+            { name: 'Shipping', value: data.shippingCost },
+            { name: 'COGS', value: data.cogs },
+          ]}
+        />
+      </div>
+<div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div className="card">
           <h2 className="font-semibold mb-3">Best Sellers</h2>
           {data.bestSellers.length === 0 ? (
