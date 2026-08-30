@@ -33,15 +33,53 @@ const ROLE_SECTIONS = {
   staff: ['dashboard', 'products', 'inventory', 'sales', 'customers', 'purchases', 'shipping', 'alerts'],
 };
 
-function ItemIcon() {
-  return (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
-      <rect x="3" y="3" width="7" height="7" rx="1.5" />
-      <rect x="14" y="3" width="7" height="7" rx="1.5" />
-      <rect x="3" y="14" width="7" height="7" rx="1.5" />
-      <rect x="14" y="14" width="7" height="7" rx="1.5" />
-    </svg>
-  );
+const ICONS = {
+  dashboard: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3 11.5 12 4l9 7.5" /><path d="M5 10v10h14V10" /></svg>
+  ),
+  products: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="8" height="8" rx="1.5" /><rect x="13" y="3" width="8" height="8" rx="1.5" /><rect x="3" y="13" width="8" height="8" rx="1.5" /><rect x="13" y="13" width="8" height="8" rx="1.5" /></svg>
+  ),
+  inventory: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 8 12 3 3 8l9 5 9-5Z" /><path d="M3 8v8l9 5 9-5V8" /></svg>
+  ),
+  sales: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3 17 9 11l4 4 8-8" /><path d="M15 7h6v6" /></svg>
+  ),
+  customers: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="12" cy="8" r="3.2" /><path d="M5 21c0-4 3-6.5 7-6.5s7 2.5 7 6.5" /></svg>
+  ),
+  purchases: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 4h2l1.5 12h11L21 8H7" /><circle cx="9" cy="20" r="1.3" /><circle cx="17" cy="20" r="1.3" /></svg>
+  ),
+  shipping: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="2" y="7" width="12" height="9" rx="1.2" /><path d="M14 10h4l3 3v3h-7" /><circle cx="6.5" cy="18.5" r="1.4" /><circle cx="17.5" cy="18.5" r="1.4" /></svg>
+  ),
+  marketing: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M3 10v4h4l6 4V6L7 10H3Z" /><path d="M16 9a4 4 0 0 1 0 6" /></svg>
+  ),
+  expenses: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="4" width="18" height="16" rx="1.5" /><path d="M7 9h10M7 13h6" /></svg>
+  ),
+  pnl: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 19V5M4 19h16" /><path d="M8 15l3-4 3 2 4-6" /></svg>
+  ),
+  analytics: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="4" y="12" width="3.5" height="8" /><rect x="10.25" y="7" width="3.5" height="13" /><rect x="16.5" y="3" width="3.5" height="17" /></svg>
+  ),
+  alerts: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 3a5 5 0 0 0-5 5v3.5L5 15h14l-2-3.5V8a5 5 0 0 0-5-5Z" /><path d="M10 18a2 2 0 0 0 4 0" /></svg>
+  ),
+  'cost-templates': (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 7h16M4 12h16M4 17h10" /></svg>
+  ),
+  users: (
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><circle cx="9" cy="8" r="3" /><path d="M2 20c0-3.5 3-6 7-6s7 2.5 7 6" /><path d="M17 8.5a2.5 2.5 0 1 1 0-5" /><path d="M22 20c0-3-2-5-4.5-5.7" /></svg>
+  ),
+};
+
+function iconFor(item) {
+  return ICONS[item.href.replace('/', '')] || ICONS.dashboard;
 }
 
 export default function TopNav({ role, name }) {
@@ -72,21 +110,25 @@ export default function TopNav({ role, name }) {
   }, [pathname]);
 
   const activeGroup = groups.find((g) => g.items.some((i) => i.href === pathname));
+  const initial = (name || '?').trim().charAt(0).toUpperCase();
 
   return (
-    <header ref={containerRef} className="sticky top-0 z-40 bg-midnight text-chalk border-b border-white/10">
-      <div className="flex items-center justify-between px-6 py-3">
-        <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-purple-400 to-blue-400 flex items-center justify-center text-xs font-bold text-white">
+    <header
+      ref={containerRef}
+      className="sticky top-0 z-40 border-b border-purple-100 bg-gradient-to-r from-white via-cream to-white"
+    >
+      <div className="flex items-center justify-between gap-4 px-6 py-3">
+        <div className="flex items-center gap-3 shrink-0">
+          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-midnight to-gold flex items-center justify-center text-sm font-bold text-white shadow-sm">
             C
           </div>
-          <div>
-            <p className="text-sm font-semibold leading-none">Crescent Loom</p>
+          <div className="hidden sm:block">
+            <p className="text-sm font-semibold leading-none text-midnight">Crescent Loom</p>
             <p className="text-[10px] text-glacier mt-0.5">Business OS</p>
           </div>
         </div>
 
-        <nav className="hidden md:flex items-center gap-8">
+        <nav className="hidden md:flex items-center gap-7">
           {groups.map((group) => {
             const isOpen = openGroup === group.name;
             const isActive = activeGroup?.name === group.name;
@@ -94,10 +136,10 @@ export default function TopNav({ role, name }) {
               <button
                 key={group.name}
                 onClick={() => setOpenGroup(isOpen ? null : group.name)}
-                className={`text-xs tracking-wider uppercase pb-1 border-b-2 transition-colors ${
+                className={`text-xs font-semibold tracking-wider uppercase pb-1 border-b-2 transition-colors ${
                   isOpen || isActive
-                    ? 'text-gold border-gold'
-                    : 'text-chalk/70 border-transparent hover:text-chalk'
+                    ? 'text-midnight border-midnight'
+                    : 'text-glacier border-transparent hover:text-midnight'
                 }`}
               >
                 {group.name}
@@ -106,10 +148,28 @@ export default function TopNav({ role, name }) {
           })}
         </nav>
 
-        <div className="flex items-center gap-3">
-          <p className="hidden sm:block text-xs text-glacier">
-            {name} · <span className="capitalize">{role}</span>
-          </p>
+        <div className="flex items-center gap-3 shrink-0">
+          <div className="hidden lg:flex items-center gap-2 bg-white border border-purple-100 rounded-full px-3 py-1.5 text-xs text-glacier w-48">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" />
+            </svg>
+            <span>Search…</span>
+          </div>
+
+          <button className="relative w-8 h-8 rounded-full bg-white border border-purple-100 flex items-center justify-center text-midnight">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
+              <path d="M12 3a5 5 0 0 0-5 5v3.5L5 15h14l-2-3.5V8a5 5 0 0 0-5-5Z" />
+              <path d="M10 18a2 2 0 0 0 4 0" />
+            </svg>
+          </button>
+
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-midnight to-gold flex items-center justify-center text-xs font-semibold text-white">
+            {initial}
+          </div>
+          <div className="hidden sm:block">
+            <p className="text-xs font-medium text-midnight leading-none">{name}</p>
+            <p className="text-[10px] text-glacier mt-0.5 capitalize">{role}</p>
+          </div>
           <button onClick={() => signOut({ callbackUrl: '/login' })} className="text-xs text-gold hover:underline">
             Sign out
           </button>
@@ -118,8 +178,8 @@ export default function TopNav({ role, name }) {
 
       {openGroup && (
         <div className="absolute left-0 right-0 flex justify-center px-6">
-          <div className="mt-2 w-full max-w-3xl rounded-2xl border border-white/10 bg-midnight/95 backdrop-blur-xl shadow-2xl p-5">
-            <p className="text-[10px] tracking-wider uppercase text-glacier/60 mb-3">{openGroup}</p>
+          <div className="mt-2 w-full max-w-3xl rounded-2xl border border-purple-100 bg-white/95 backdrop-blur-xl shadow-xl p-5">
+            <p className="text-[10px] tracking-wider uppercase text-glacier mb-3">{openGroup}</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {groups
                 .find((g) => g.name === openGroup)
@@ -128,13 +188,11 @@ export default function TopNav({ role, name }) {
                     key={item.href}
                     href={item.href}
                     onClick={() => setOpenGroup(null)}
-                    className="flex items-start gap-2.5 p-2.5 rounded-lg hover:bg-white/5 transition-colors"
+                    className="flex items-start gap-2.5 p-2.5 rounded-lg hover:bg-cream transition-colors"
                   >
-                    <span className="text-gold mt-0.5">
-                      <ItemIcon />
-                    </span>
+                    <span className="text-midnight mt-0.5">{iconFor(item)}</span>
                     <span>
-                      <span className="block text-sm text-chalk">{item.label}</span>
+                      <span className="block text-sm text-midnight font-medium">{item.label}</span>
                       <span className="block text-xs text-glacier">{item.desc}</span>
                     </span>
                   </Link>
