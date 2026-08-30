@@ -15,7 +15,10 @@ export default function CrudPage({ config }) {
   const [showForm, setShowForm] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState({});
-  const [dynamicOptions, setDynamicOptions] = useState({});
+  const [dynamicOptions, setDynamicOptions] = useState({});  function buildItemUrl(id) {
+    const [base, query] = config.apiPath.split('?');
+    return query ? `${base}/${id}?${query}` : `${base}/${id}`;
+  }
 
   async function load() {
     setLoading(true);
@@ -60,7 +63,7 @@ export default function CrudPage({ config }) {
 
   async function handleDelete(row) {
     if (!confirm('Delete this record?')) return;
-    const res = await fetch(`${config.apiPath}/${row._id}`, { method: 'DELETE' });
+    const res = await fetch(buildItemUrl(row._id), { method: 'DELETE' });
     if (res.ok) load();
     else setError((await res.json()).error || 'Delete failed');
   }
@@ -69,7 +72,7 @@ export default function CrudPage({ config }) {
     e.preventDefault();
     setError('');
     const method = editing ? 'PATCH' : 'POST';
-    const url = editing ? `${config.apiPath}/${editing._id}` : config.apiPath;
+    const url = editing ? buildItemUrl(editing._id) : config.apiPath;
     const res = await fetch(url, {
       method,
       headers: { 'Content-Type': 'application/json' },
