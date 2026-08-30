@@ -27,10 +27,16 @@ export async function GET(request) {
 
   const sales = await Sale.find({ ...dateFilter, status: { $ne: 'Cancelled' } }).lean();
 
-  const totalRevenue = sales.reduce((sum, s) => sum + s.qty * s.sellingPrice, 0);
+    const totalRevenue = sales.reduce(
+    (sum, s) => sum + s.items.reduce((iSum, it) => iSum + (it.qty || 0) * (it.sellingPrice || 0), 0),
+    0
+  );
   const totalDiscount = sales.reduce((sum, s) => sum + (s.discount || 0), 0);
   const netSales = totalRevenue - totalDiscount;
-  const cogs = sales.reduce((sum, s) => sum + s.qty * (s.costPrice || 0), 0);
+  const cogs = sales.reduce(
+    (sum, s) => sum + s.items.reduce((iSum, it) => iSum + (it.qty || 0) * (it.costPrice || 0), 0),
+    0
+  );
   const grossProfit = netSales - cogs;
   const grossMarginPct = netSales > 0 ? (grossProfit / netSales) * 100 : 0;
 
@@ -47,12 +53,14 @@ export async function GET(request) {
   const marketingPctOfRevenue = totalRevenue > 0 ? (marketingExpense / totalRevenue) * 100 : 0;
 
   // Best / worst sellers by units sold in range
-  const byProduct = {};
+    const byProduct = {};
   for (const s of sales) {
-    const key = s.productName || 'Unknown';
-    if (!byProduct[key]) byProduct[key] = { name: key, units: 0, revenue: 0 };
-    byProduct[key].units += s.qty;
-    byProduct[key].revenue += s.qty * s.sellingPrice - (s.discount || 0);
+    for (const it of s.items) {
+      const key = it.productName || 'Unknown';
+      if (!byProduct[key]) byProduct[key] = { name: key, units: 0, revenue: 0 };
+      byProduct[key].units += it.qty || 0;
+      byProduct[key].revenue += (it.qty || 0) * (it.sellingPrice || 0);
+    }
   }
   const ranked = Object.values(byProduct).sort((a, b) => b.units - a.units);
   const bestSellers = ranked.slice(0, 5);
