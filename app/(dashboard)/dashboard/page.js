@@ -5,6 +5,7 @@ import StatCard from '../../../components/StatCard';import RevenueChart from '..
 import ExpenseDonut from '../../../components/ExpenseDonut';
 import TopSellingProducts from '../../../components/TopSellingProducts';
 import RecentOrders from '../../../components/RecentOrders';
+import { useSession } from 'next-auth/react';
 import { inr, pct } from '../../../lib/format';const Icon = {
   revenue: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 2v20M17 6.5c0-2-2-3.5-5-3.5s-5 1.5-5 3.5 2 3 5 3 5 1 5 3.5-2 3.5-5 3.5-5-1.5-5-3.5" /></svg>
@@ -39,9 +40,10 @@ import { inr, pct } from '../../../lib/format';const Icon = {
 };
 
 export default function DashboardPage() {
+  const { data: session } = useSession();
   const [data, setData] = useState(null);
   const [range, setRange] = useState('month'); // month | quarter | year
-
+  const firstName = (session?.user?.name || '').split(' ')[0];
   useEffect(() => {
     const now = new Date();
     let from;
@@ -57,15 +59,22 @@ export default function DashboardPage() {
 
     return (
     <div className="page-enter">
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold">Business Dashboard</h1>
-        <div className="flex gap-2">
+            <div className="flex items-center justify-between mb-6">
+        <div>
+          <h1 className="text-2xl font-semibold text-midnight">
+            {firstName ? `Good morning, ${firstName}! \u{1F44B}` : 'Business Dashboard'}
+          </h1>
+          <p className="text-sm text-glacier mt-1">Here's what's happening with your business today.</p>
+        </div>
+        <div className="flex gap-2 bg-white border border-purple-100 rounded-full p-1">
           {['month', 'quarter', 'year'].map((r) => (
             <button
               key={r}
               onClick={() => setRange(r)}
-              className={`text-xs px-3 py-1.5 rounded-full border ${
-                range === r ? 'bg-midnight text-chalk border-midnight' : 'border-gray-300 text-glacier'
+              className={`text-xs px-3 py-1.5 rounded-full transition-colors ${
+                range === r
+                  ? 'bg-gradient-to-r from-midnight to-gold text-white'
+                  : 'text-glacier hover:text-midnight'
               }`}
             >
               This {r}
@@ -74,25 +83,25 @@ export default function DashboardPage() {
         </div>
       </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-        <StatCard label="Total Revenue" value={inr(data.totalRevenue)} icon={Icon.revenue} />
-        <StatCard label="Net Sales" value={inr(data.netSales)} sub={`${data.orderCount} orders`} icon={Icon.sales} />
-        <StatCard label="Gross Profit" value={inr(data.grossProfit)} tone={data.grossProfit >= 0 ? 'good' : 'bad'} icon={Icon.profit} />
-        <StatCard label="Net Profit" value={inr(data.netProfit)} tone={data.netProfit >= 0 ? 'good' : 'bad'} icon={Icon.wallet} />
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+        <StatCard label="Total Revenue" value={inr(data.totalRevenue)} icon={Icon.revenue} color="purple" />
+        <StatCard label="Net Sales" value={inr(data.netSales)} sub={`${data.orderCount} orders`} icon={Icon.sales} color="blue" />
+        <StatCard label="Gross Profit" value={inr(data.grossProfit)} tone={data.grossProfit >= 0 ? 'good' : 'bad'} icon={Icon.profit} color="green" />
+        <StatCard label="Net Profit" value={inr(data.netProfit)} tone={data.netProfit >= 0 ? 'good' : 'bad'} icon={Icon.wallet} color="pink" />
       </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-        <StatCard label="Gross Margin" value={pct(data.grossMarginPct)} icon={Icon.percent} />
-        <StatCard label="Net Margin" value={pct(data.netMarginPct)} icon={Icon.percent} />
-        <StatCard label="Total Expenses" value={inr(data.totalExpense)} icon={Icon.expense} />
-        <StatCard label="Avg Order Value" value={inr(data.avgOrderValue)} icon={Icon.order} />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
+        <StatCard label="Gross Margin" value={pct(data.grossMarginPct)} icon={Icon.percent} color="purple" />
+        <StatCard label="Net Margin" value={pct(data.netMarginPct)} icon={Icon.percent} color="blue" />
+        <StatCard label="Total Expenses" value={inr(data.totalExpense)} icon={Icon.expense} color="orange" />
+        <StatCard label="Avg Order Value" value={inr(data.avgOrderValue)} icon={Icon.order} color="green" />
       </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
-        <StatCard label="Marketing Spend" value={inr(data.marketingExpense)} sub={`${pct(data.marketingPctOfRevenue)} of revenue`} icon={Icon.marketing} />
-        <StatCard label="Operating Expense" value={inr(data.operatingExpense)} icon={Icon.expense} />
-        <StatCard label="Shipping Cost" value={inr(data.shippingCost)} icon={Icon.shipping} />
-        <StatCard label="COGS" value={inr(data.cogs)} icon={Icon.cogs} />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
+        <StatCard label="Marketing Spend" value={inr(data.marketingExpense)} sub={`${pct(data.marketingPctOfRevenue)} of revenue`} icon={Icon.marketing} color="purple" />
+        <StatCard label="Operating Expense" value={inr(data.operatingExpense)} icon={Icon.expense} color="blue" />
+        <StatCard label="Shipping Cost" value={inr(data.shippingCost)} icon={Icon.shipping} color="orange" />
+        <StatCard label="COGS" value={inr(data.cogs)} icon={Icon.cogs} color="pink" />
       </div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
