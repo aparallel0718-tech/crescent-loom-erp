@@ -82,6 +82,9 @@ function iconFor(item) {
   return ICONS[item.href.replace('/', '')] || ICONS.dashboard;
 }
 
+// Shared frosted-glass pill style for each functional cluster in the header
+const glass = 'bg-white/40 backdrop-blur-md border border-white/60 shadow-sm';
+
 export default function TopNav({ role, name }) {
   const pathname = usePathname();
   const [openGroup, setOpenGroup] = useState(null);
@@ -113,13 +116,12 @@ export default function TopNav({ role, name }) {
   const initial = (name || '?').trim().charAt(0).toUpperCase();
 
   return (
-    <header
-      ref={containerRef}
-      className="sticky top-0 z-40 border-b border-purple-100 bg-gradient-to-r from-white via-cream to-white"
-    >
+    // No background/border on the header itself — only the clusters inside get glass styling,
+    // so empty space stays part of the page background instead of a solid bar.
+    <header ref={containerRef} className="sticky top-0 z-40">
       <div className="flex items-center justify-between gap-4 px-6 py-3">
-        <div className="flex items-center gap-3 shrink-0">
-          <div className="w-9 h-9 rounded-full bg-gradient-to-br from-midnight to-gold flex items-center justify-center text-sm font-bold text-white shadow-sm">
+        <div className={`flex items-center gap-3 shrink-0 rounded-full px-3 py-1.5 ${glass}`}>
+          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-midnight to-gold flex items-center justify-center text-sm font-bold text-white shadow-sm">
             C
           </div>
           <div className="hidden sm:block">
@@ -128,7 +130,7 @@ export default function TopNav({ role, name }) {
           </div>
         </div>
 
-        <nav className="hidden md:flex items-center gap-7">
+        <nav className={`hidden md:flex items-center gap-1 rounded-full px-2 py-1.5 ${glass}`}>
           {groups.map((group) => {
             const isOpen = openGroup === group.name;
             const isActive = activeGroup?.name === group.name;
@@ -136,10 +138,10 @@ export default function TopNav({ role, name }) {
               <button
                 key={group.name}
                 onClick={() => setOpenGroup(isOpen ? null : group.name)}
-                className={`text-xs font-semibold tracking-wider uppercase pb-1 border-b-2 transition-colors ${
+                className={`text-xs font-semibold tracking-wider uppercase px-4 py-1.5 rounded-full transition-colors ${
                   isOpen || isActive
-                    ? 'text-midnight border-midnight'
-                    : 'text-glacier border-transparent hover:text-midnight'
+                    ? 'bg-white/70 text-midnight'
+                    : 'text-glacier hover:text-midnight'
                 }`}
               >
                 {group.name}
@@ -148,37 +150,39 @@ export default function TopNav({ role, name }) {
           })}
         </nav>
 
-        <div className="flex items-center gap-3 shrink-0">
-          <div className="hidden lg:flex items-center gap-2 bg-white border border-purple-100 rounded-full px-3 py-1.5 text-xs text-glacier w-48">
+        <div className="flex items-center gap-2 shrink-0">
+          <div className={`hidden lg:flex items-center gap-2 rounded-full px-3 py-1.5 text-xs text-glacier w-48 ${glass}`}>
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" />
             </svg>
             <span>Search…</span>
           </div>
 
-          <button className="relative w-8 h-8 rounded-full bg-white border border-purple-100 flex items-center justify-center text-midnight">
+          <button className={`relative w-9 h-9 rounded-full flex items-center justify-center text-midnight ${glass}`}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8">
               <path d="M12 3a5 5 0 0 0-5 5v3.5L5 15h14l-2-3.5V8a5 5 0 0 0-5-5Z" />
               <path d="M10 18a2 2 0 0 0 4 0" />
             </svg>
           </button>
 
-          <div className="w-8 h-8 rounded-full bg-gradient-to-br from-midnight to-gold flex items-center justify-center text-xs font-semibold text-white">
-            {initial}
+          <div className={`flex items-center gap-2 rounded-full pl-1.5 pr-3 py-1.5 ${glass}`}>
+            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-midnight to-gold flex items-center justify-center text-xs font-semibold text-white shrink-0">
+              {initial}
+            </div>
+            <div className="hidden sm:block">
+              <p className="text-xs font-medium text-midnight leading-none">{name}</p>
+              <p className="text-[10px] text-glacier mt-0.5 capitalize">{role}</p>
+            </div>
+            <button onClick={() => signOut({ callbackUrl: '/login' })} className="text-xs text-gold hover:underline ml-1">
+              Sign out
+            </button>
           </div>
-          <div className="hidden sm:block">
-            <p className="text-xs font-medium text-midnight leading-none">{name}</p>
-            <p className="text-[10px] text-glacier mt-0.5 capitalize">{role}</p>
-          </div>
-          <button onClick={() => signOut({ callbackUrl: '/login' })} className="text-xs text-gold hover:underline">
-            Sign out
-          </button>
         </div>
       </div>
 
       {openGroup && (
         <div className="absolute left-0 right-0 flex justify-center px-6">
-          <div className="mt-2 w-full max-w-3xl rounded-2xl border border-purple-100 bg-white/95 backdrop-blur-xl shadow-xl p-5">
+          <div className="mt-2 w-full max-w-3xl rounded-2xl border border-white/60 bg-white/50 backdrop-blur-xl shadow-xl p-5 dropdown-enter">
             <p className="text-[10px] tracking-wider uppercase text-glacier mb-3">{openGroup}</p>
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {groups
@@ -188,7 +192,7 @@ export default function TopNav({ role, name }) {
                     key={item.href}
                     href={item.href}
                     onClick={() => setOpenGroup(null)}
-                    className="flex items-start gap-2.5 p-2.5 rounded-lg hover:bg-cream transition-colors"
+                    className="flex items-start gap-2.5 p-2.5 rounded-lg hover:bg-white/60 transition-colors"
                   >
                     <span className="text-midnight mt-0.5">{iconFor(item)}</span>
                     <span>
