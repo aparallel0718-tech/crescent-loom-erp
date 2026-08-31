@@ -89,6 +89,17 @@ export default function TopNav({ role, name }) {
   const pathname = usePathname();
   const [openGroup, setOpenGroup] = useState(null);
   const containerRef = useRef(null);
+  const closeTimer = useRef(null);
+
+  function openNow(name) {
+    clearTimeout(closeTimer.current);
+    setOpenGroup(name);
+  }
+
+  function closeSoon() {
+    clearTimeout(closeTimer.current);
+    closeTimer.current = setTimeout(() => setOpenGroup(null), 150);
+  }
 
   const allowed = ROLE_SECTIONS[role];
   const items = allowed ? NAV.filter((n) => allowed.includes(n.section)) : NAV;
@@ -106,6 +117,9 @@ export default function TopNav({ role, name }) {
     }
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+  useEffect(() => {
+    return () => clearTimeout(closeTimer.current);
   }, []);
 
   useEffect(() => {
@@ -130,14 +144,18 @@ export default function TopNav({ role, name }) {
           </div>
         </div>
 
-        <nav className={`hidden md:flex items-center gap-1 rounded-full px-2 py-1.5 ${glass}`}>
+                <nav
+          className={`hidden md:flex items-center gap-1 rounded-full px-2 py-1.5 ${glass}`}
+          onMouseLeave={closeSoon}
+        >
           {groups.map((group) => {
             const isOpen = openGroup === group.name;
             const isActive = activeGroup?.name === group.name;
             return (
               <button
                 key={group.name}
-                onClick={() => setOpenGroup(isOpen ? null : group.name)}
+                onMouseEnter={() => openNow(group.name)}
+                onClick={() => openNow(isOpen ? null : group.name)}
                 className={`text-xs font-semibold tracking-wider uppercase px-4 py-1.5 rounded-full transition-colors ${
                   isOpen || isActive
                     ? 'bg-white/70 text-midnight'
@@ -180,14 +198,20 @@ export default function TopNav({ role, name }) {
         </div>
       </div>
 
-      {openGroup && (
-        <div className="absolute left-0 right-0 flex justify-center px-6">
-          <div className="mt-2 w-full max-w-3xl rounded-2xl border border-white/60 bg-white/50 backdrop-blur-xl shadow-xl p-5 dropdown-enter">
-            <p className="text-[10px] tracking-wider uppercase text-glacier mb-3">{openGroup}</p>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {groups
-                .find((g) => g.name === openGroup)
-                .items.map((item) => (
+            <div className="absolute left-0 right-0 flex justify-center px-6">
+        <div
+          className="dropdown-panel mt-2 w-full max-w-3xl rounded-2xl border border-white/60 bg-white/50 backdrop-blur-xl shadow-xl p-5"
+          data-state={openGroup ? 'open' : 'closed'}
+          onMouseEnter={() => openGroup && openNow(openGroup)}
+          onMouseLeave={closeSoon}
+        >
+          {openGroup && (
+            <>
+              <p className="text-[10px] tracking-wider uppercase text-glacier mb-3">{openGroup}</p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {groups
+                  .find((g) => g.name === openGroup)
+                  .items.map((item) => (
                   <Link
                     key={item.href}
                     href={item.href}
@@ -199,12 +223,13 @@ export default function TopNav({ role, name }) {
                       <span className="block text-sm text-midnight font-medium">{item.label}</span>
                       <span className="block text-xs text-glacier">{item.desc}</span>
                     </span>
-                  </Link>
+                                    </Link>
                 ))}
-            </div>
-          </div>
+              </div>
+            </>
+          )}
         </div>
-      )}
+      </div>
     </header>
   );
 }
