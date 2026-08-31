@@ -14,8 +14,37 @@ body {
   font-family: 'DM Sans', system-ui, sans-serif;
 }
 
+* {
+  transition-property: background-color, border-color, color, box-shadow, transform, opacity;
+  transition-duration: 150ms;
+  transition-timing-function: ease-out;
+}
+
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.page-enter {
+  animation: fadeInUp 300ms ease-out both;
+}
+
+@keyframes dropdownIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.dropdown-enter {
+  animation: dropdownIn 180ms ease-out both;
+}
+
 .card {
   @apply bg-white rounded-2xl shadow-sm border border-purple-100/60 p-5;
+  transition: transform 200ms ease-out, box-shadow 200ms ease-out;
+}
+.card:hover {
+  @apply shadow-md;
+  transform: translateY(-2px);
 }
 
 .btn-primary {
@@ -35,4 +64,10 @@ table th {
 }
 table td {
   @apply px-3 py-2 text-sm border-t border-gray-100;
+}
+table tbody tr {
+  transition: background-color 150ms ease-out;
+}
+table tbody tr:hover {
+  @apply bg-cream/60;
 }

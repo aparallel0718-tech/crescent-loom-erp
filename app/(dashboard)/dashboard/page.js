@@ -55,8 +55,8 @@ export default function DashboardPage() {
 
   if (!data) return <p className="text-sm text-glacier">Loading dashboard…</p>;
 
-  return (
-    <div>
+    return (
+    <div className="page-enter">
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-2xl font-semibold">Business Dashboard</h1>
         <div className="flex gap-2">
