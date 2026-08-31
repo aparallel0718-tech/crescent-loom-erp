@@ -25,7 +25,28 @@ export async function GET(request) {
   const { from, to } = parseRange(searchParams);
   const dateFilter = { orderDate: { $gte: from, $lte: to } };
 
-  const sales = await Sale.find({ ...dateFilter, status: { $ne: 'Cancelled' } }).lean();
+  const sales = await Sale.find({ ...dateFilter, status: { $ne: 'Cancelled' } }).lean();  // Build a daily series for the Revenue Overview chart
+  const dailyMap = {};
+  for (const s of sales) {
+    const day = new Date(s.orderDate).toISOString().slice(0, 10); // YYYY-MM-DD
+    if (!dailyMap[day]) dailyMap[day] = { date: day, revenue: 0, sales: 0, profit: 0 };
+    const itemRevenue = s.items.reduce((sum, it) => sum + (it.qty || 0) * (it.sellingPrice || 0), 0);
+    const itemCost = s.items.reduce((sum, it) => sum + (it.qty || 0) * (it.costPrice || 0), 0);
+    dailyMap[day].revenue += itemRevenue;
+    dailyMap[day].sales += itemRevenue - (s.discount || 0);
+    dailyMap[day].profit += itemRevenue - itemCost - (s.discount || 0);
+  }
+  const dailySeries = Object.values(dailyMap).sort((a, b) => a.date.localeCompare(b.date));  // Most recent orders for the Recent Orders widget
+  const recentOrders = [...sales]
+    .sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate))
+    .slice(0, 5)
+    .map((s) => ({
+      orderId: s.orderId,
+      customerName: s.customerName || 'Unknown',
+      items: s.items.map((it) => ({ productName: it.productName, qty: it.qty })),
+      amount: s.items.reduce((sum, it) => sum + (it.qty || 0) * (it.sellingPrice || 0), 0) - (s.discount || 0),
+      status: s.status,
+    }));
 
     const totalRevenue = sales.reduce(
     (sum, s) => sum + s.items.reduce((iSum, it) => iSum + (it.qty || 0) * (it.sellingPrice || 0), 0),
@@ -103,11 +124,13 @@ export async function GET(request) {
     netProfit,
     netMarginPct,
     marketingPctOfRevenue,
-    orderCount: sales.length,
+        orderCount: sales.length,
     avgOrderValue: sales.length ? netSales / sales.length : 0,
     bestSellers,
     worstSellers,
-    lowStock,
+        lowStock,
     outOfStock,
+    dailySeries,
+    recentOrders,
   });
 }

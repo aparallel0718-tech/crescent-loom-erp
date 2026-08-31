@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import StatCard from '../../../components/StatCard';import RevenueChart from '../../../components/RevenueChart';
 import ExpenseDonut from '../../../components/ExpenseDonut';
+import TopSellingProducts from '../../../components/TopSellingProducts';
+import RecentOrders from '../../../components/RecentOrders';
 import { inr, pct } from '../../../lib/format';const Icon = {
   revenue: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M12 2v20M17 6.5c0-2-2-3.5-5-3.5s-5 1.5-5 3.5 2 3 5 3 5 1 5 3.5-2 3.5-5 3.5-5-1.5-5-3.5" /></svg>
@@ -103,6 +105,12 @@ export default function DashboardPage() {
             { name: 'COGS', value: data.cogs },
           ]}
         />
+      </div>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div className="lg:col-span-2">
+          <RecentOrders orders={data.recentOrders} />
+        </div>
+        <TopSellingProducts products={data.bestSellers} />
       </div>
 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
         <div className="card">
