@@ -6,12 +6,12 @@ module.exports = {
   ],
   theme: {
     extend: {
-            colors: {
-        midnight: '#5B4FE9',
-        gold: '#8B7FF5',
-        chalk: '#F5F3FF',
-        cream: '#ECE9FB',
-        glacier: '#8D89A8',
+                  colors: {
+        midnight: '#E8B563',
+        gold: '#E8B563',
+        chalk: '#0B0B0C',
+        cream: '#17161A',
+        glacier: '#8C8A94',
       },
     },
   },

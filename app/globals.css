@@ -3,15 +3,17 @@
 @tailwind utilities;
 
 :root {
-  --midnight: #5B4FE9;
-  --gold: #8B7FF5;
-  --chalk: #F5F3FF;
-  --cream: #ECE9FB;
-  --glacier: #8D89A8;
+  --midnight: #E8B563;
+  --gold: #E8B563;
+  --chalk: #0B0B0C;
+  --cream: #17161A;
+  --glacier: #8C8A94;
 }
 
 body {
   font-family: 'DM Sans', system-ui, sans-serif;
+  background-color: #0B0B0C;
+  color: #F2F1EE;
 }
 
 * {
@@ -44,16 +46,19 @@ body {
 }
 
 .card {
-  @apply bg-white rounded-2xl shadow-sm border border-purple-100/60 p-5;
+  @apply rounded-2xl shadow-sm p-5;
+  background: #131215;
+  border: 1px solid rgba(232, 181, 99, 0.12);
+  color: #F2F1EE;
   transition: transform 200ms ease-out, box-shadow 200ms ease-out;
 }
 .card:hover {
-  @apply shadow-md;
   transform: translateY(-2px);
+  border-color: rgba(232, 181, 99, 0.3);
 }
 
 .btn-primary {
-  @apply bg-midnight text-chalk px-4 py-2 rounded-lg text-sm font-medium hover:bg-gold transition-colors;
+  @apply bg-gold text-black px-4 py-2 rounded-lg text-sm font-medium hover:opacity-90 transition-colors;
 }
 
 .btn-secondary {
