@@ -1,20 +1,19 @@
 const COLOR_MAP = {
-  purple: 'bg-purple-100 text-purple-600',
-  blue: 'bg-blue-100 text-blue-600',
-  green: 'bg-emerald-100 text-emerald-600',
-  orange: 'bg-orange-100 text-orange-600',
-  pink: 'bg-pink-100 text-pink-600',
+  gold: { icon: 'bg-[#3a2f1a] text-[#E8B563]', ring: 'border-[#E8B563]/25' },
+  blue: { icon: 'bg-[#1a2733] text-[#5AA9E6]', ring: 'border-[#5AA9E6]/25' },
+  green: { icon: 'bg-[#123023] text-[#3FC98A]', ring: 'border-[#3FC98A]/25' },
+  red: { icon: 'bg-[#331a1f] text-[#E85D6F]', ring: 'border-[#E85D6F]/25' },
 };
 
-export default function StatCard({ label, value, sub, tone, icon, color = 'purple' }) {
+export default function StatCard({ label, value, sub, tone, icon, color = 'gold' }) {
   const toneClass =
-    tone === 'good' ? 'text-emerald-600' : tone === 'bad' ? 'text-red-600' : 'text-midnight';
-  const iconClass = COLOR_MAP[color] || COLOR_MAP.purple;
+    tone === 'good' ? 'text-[#3FC98A]' : tone === 'bad' ? 'text-[#E85D6F]' : 'text-[#F2F1EE]';
+  const scheme = COLOR_MAP[color] || COLOR_MAP.gold;
   return (
-    <div className="card">
+    <div className={`card border ${scheme.ring}`}>
       <div className="flex items-start gap-3">
         {icon && (
-          <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${iconClass}`}>
+          <div className={`w-9 h-9 rounded-full flex items-center justify-center shrink-0 ${scheme.icon}`}>
             {icon}
           </div>
         )}
