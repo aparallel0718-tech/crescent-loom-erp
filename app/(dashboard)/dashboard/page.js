@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import StatCard from '../../../components/StatCard';import RevenueChart from '../../../components/RevenueChart';
 import ExpenseDonut from '../../../components/ExpenseDonut';
+import BrandPanel from '../../../components/BrandPanel';
 import TopSellingProducts from '../../../components/TopSellingProducts';
 import RecentOrders from '../../../components/RecentOrders';
 import { useSession } from 'next-auth/react';
@@ -105,16 +106,21 @@ export default function DashboardPage() {
         <StatCard label="COGS" value={inr(data.cogs)} icon={Icon.cogs} color="red" />
       </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
-        <RevenueChart data={data.dailySeries} />
-        <ExpenseDonut
-          data={[
-            { name: 'Marketing', value: data.marketingExpense },
-            { name: 'Operating', value: data.operatingExpense },
-            { name: 'Shipping', value: data.shippingCost },
-            { name: 'COGS', value: data.cogs },
-          ]}
-        />
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+        <div className="lg:col-span-1">
+          <RevenueChart data={data.dailySeries} />
+        </div>
+        <div className="lg:col-span-1">
+          <ExpenseDonut
+            data={[
+              { name: 'Marketing', value: data.marketingExpense },
+              { name: 'Operating', value: data.operatingExpense },
+              { name: 'Shipping', value: data.shippingCost },
+              { name: 'COGS', value: data.cogs },
+            ]}
+          />
+        </div>
+        <BrandPanel />
       </div>
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
         <div className="lg:col-span-2">
