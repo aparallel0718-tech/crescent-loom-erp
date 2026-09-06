@@ -2,7 +2,7 @@
 import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts';
 import { inr } from '../lib/format';
 
-const COLORS = ['#5B4FE9', '#8B7FF5', '#10B981', '#F59E0B', '#EC4899'];
+const COLORS = ['#8B7FF5', '#5AA9E6', '#3FC98A', '#E8B563', '#E85D6F'];
 
 export default function ExpenseDonut({ data }) {
   const total = data.reduce((sum, d) => sum + d.value, 0);
@@ -10,7 +10,7 @@ export default function ExpenseDonut({ data }) {
 
   return (
     <div className="card">
-      <h2 className="font-semibold mb-3">Expense Breakdown</h2>
+      <h2 className="font-semibold mb-3 text-[#F2F1EE]">Expense Breakdown</h2>
       {nonZero.length === 0 ? (
         <p className="text-sm text-glacier">No expenses in this period yet.</p>
       ) : (
@@ -23,11 +23,14 @@ export default function ExpenseDonut({ data }) {
                     <Cell key={entry.name} fill={COLORS[i % COLORS.length]} />
                   ))}
                 </Pie>
-                <Tooltip formatter={(v) => inr(v)} />
+                <Tooltip
+                  formatter={(v) => inr(v)}
+                  contentStyle={{ background: '#131215', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 8, color: '#F2F1EE' }}
+                />
               </PieChart>
             </ResponsiveContainer>
             <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-              <p className="text-sm font-semibold text-midnight">{inr(total)}</p>
+              <p className="text-sm font-semibold text-[#F2F1EE]">{inr(total)}</p>
               <p className="text-[10px] text-glacier">Total</p>
             </div>
           </div>
@@ -35,7 +38,7 @@ export default function ExpenseDonut({ data }) {
             {nonZero.map((entry, i) => (
               <div key={entry.name} className="flex items-center gap-2">
                 <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: COLORS[i % COLORS.length] }} />
-                <span className="text-midnight">{entry.name}</span>
+                <span className="text-[#F2F1EE]">{entry.name}</span>
                 <span className="text-glacier text-xs">{inr(entry.value)}</span>
               </div>
             ))}
