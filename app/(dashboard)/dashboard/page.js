@@ -59,22 +59,23 @@ export default function DashboardPage() {
 
     return (
     <div className="page-enter">
-            <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center justify-between mb-6">
         <div>
-          <h1 className="text-2xl font-semibold text-midnight">
-            {firstName ? `Good morning, ${firstName}! \u{1F44B}` : 'Business Dashboard'}
+          <p className="text-xs tracking-[0.2em] uppercase text-gold mb-1">Good morning,</p>
+          <h1 className="text-4xl font-serif italic text-[#F2F1EE]">
+            {firstName ? `${firstName}! \u{1F44B}` : 'Welcome!'}
           </h1>
-          <p className="text-sm text-glacier mt-1">Here's what's happening with your business today.</p>
+          <p className="text-sm text-glacier mt-2">Here's what's happening with your business today.</p>
         </div>
-        <div className="flex gap-2 bg-white border border-purple-100 rounded-full p-1">
+        <div className="flex gap-1 bg-[#131215] border border-white/10 rounded-full p-1">
           {['month', 'quarter', 'year'].map((r) => (
             <button
               key={r}
               onClick={() => setRange(r)}
-              className={`text-xs px-3 py-1.5 rounded-full transition-colors ${
+              className={`text-xs px-4 py-1.5 rounded-full transition-colors ${
                 range === r
-                  ? 'bg-gradient-to-r from-midnight to-gold text-white'
-                  : 'text-glacier hover:text-midnight'
+                  ? 'bg-gold text-black font-medium'
+                  : 'text-glacier hover:text-[#F2F1EE]'
               }`}
             >
               This {r}
