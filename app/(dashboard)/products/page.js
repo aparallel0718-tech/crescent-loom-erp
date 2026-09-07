@@ -341,9 +341,10 @@ export default function ProductsPage() {
     else setError((await res.json()).error || 'Recalculate failed');
   }
 
-  const categories = ['All', ...new Set(rows.map((r) => r.category).filter(Boolean))];
-  const sizes = ['All', ...new Set(rows.map((r) => r.size).filter(Boolean))];
-  const colours = ['All', ...new Set(rows.map((r) => r.colour).filter(Boolean))];
+    const designCategories = [...new Set(rows.map((r) => r.category).filter(Boolean))];
+  const designColours = [...new Set(rows.map((r) => r.colour).filter(Boolean))];
+  const designCollections = [...new Set(rows.map((r) => r.productCollection).filter(Boolean))];
+  const designMaterials = [...new Set(rows.map((r) => r.material).filter(Boolean))];
 
   const filteredRows = rows
     .filter((r) => {
@@ -576,19 +577,32 @@ export default function ProductsPage() {
         )}
       </div>
 
-      {showAdd && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+            {showAdd && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
           <form
             onSubmit={handleAddSubmit}
-            className="bg-white rounded-xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto"
+            className="bg-[#131215] border border-white/10 rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto text-[#F2F1EE]"
           >
-            <h2 className="text-lg font-semibold mb-4">Add Design</h2>
+            <div className="flex items-start justify-between mb-5">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#E8B563] to-[#8a6a2f] flex items-center justify-center text-black">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><rect x="3" y="3" width="8" height="8" rx="1.5" /><rect x="13" y="3" width="8" height="8" rx="1.5" /><rect x="3" y="13" width="8" height="8" rx="1.5" /><rect x="13" y="13" width="8" height="8" rx="1.5" /></svg>
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold">Add Design</h2>
+                  <p className="text-xs text-glacier">Add a new product design to your catalog.</p>
+                </div>
+              </div>
+              <button type="button" onClick={() => setShowAdd(false)} className="text-glacier hover:text-[#F2F1EE] text-lg leading-none">
+                ×
+              </button>
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
               <div className="sm:col-span-2">
                 <label className="block text-xs mb-1 text-glacier">Product Name</label>
                 <input
-                  className="input"
+                  className="input bg-black/30 border-white/10 text-[#F2F1EE] placeholder:text-glacier"
                   value={designForm.name}
                   required
                   onChange={(e) => updateDesignField('name', e.target.value)}
@@ -602,68 +616,131 @@ export default function ProductsPage() {
               </div>
               <div>
                 <label className="block text-xs mb-1 text-glacier">Category</label>
-                <input className="input" value={designForm.category} onChange={(e) => updateDesignField('category', e.target.value)} />
+                <Dropdown
+                  value={designForm.category}
+                  onChange={(v) => updateDesignField('category', v)}
+                  options={[{ value: '', label: 'Select category' }, ...designCategories.map((c) => ({ value: c, label: c }))]}
+                />
               </div>
               <div>
                 <label className="block text-xs mb-1 text-glacier">Collection</label>
-                <input className="input" value={designForm.productCollection} onChange={(e) => updateDesignCollection(e.target.value)} />
+                <Dropdown
+                  value={designForm.productCollection}
+                  onChange={(v) => updateDesignCollection(v)}
+                  options={[{ value: '', label: 'Select collection' }, ...designCollections.map((c) => ({ value: c, label: c }))]}
+                />
               </div>
               <div>
                 <label className="block text-xs mb-1 text-glacier">Colour</label>
-                <input className="input" value={designForm.colour} onChange={(e) => updateDesignField('colour', e.target.value)} />
+                <Dropdown
+                  value={designForm.colour}
+                  onChange={(v) => updateDesignField('colour', v)}
+                  options={[{ value: '', label: 'Select colour' }, ...designColours.map((c) => ({ value: c, label: c }))]}
+                />
               </div>
               <div>
                 <label className="block text-xs mb-1 text-glacier">Material</label>
-                <input className="input" value={designForm.material} onChange={(e) => updateDesignField('material', e.target.value)} />
+                <Dropdown
+                  value={designForm.material}
+                  onChange={(v) => updateDesignField('material', v)}
+                  options={[{ value: '', label: 'Select material' }, ...designMaterials.map((m) => ({ value: m, label: m }))]}
+                />
               </div>
               <div>
                 <label className="block text-xs mb-1 text-glacier">Selling Price</label>
-                <input className="input" type="number" value={designForm.sellingPrice} onChange={(e) => updateDesignField('sellingPrice', e.target.value)} />
+                <div className="flex items-center bg-black/30 border border-white/10 rounded-full px-4">
+                  <span className="text-glacier text-sm mr-1">₹</span>
+                  <input
+                    className="bg-transparent outline-none py-3 text-sm text-[#F2F1EE] w-full"
+                    type="number"
+                    value={designForm.sellingPrice}
+                    onChange={(e) => updateDesignField('sellingPrice', e.target.value)}
+                  />
+                </div>
               </div>
               <div>
                 <label className="block text-xs mb-1 text-glacier">MRP</label>
-                <input className="input" type="number" value={designForm.mrp} onChange={(e) => updateDesignField('mrp', e.target.value)} />
+                <div className="flex items-center bg-black/30 border border-white/10 rounded-full px-4">
+                  <span className="text-glacier text-sm mr-1">₹</span>
+                  <input
+                    className="bg-transparent outline-none py-3 text-sm text-[#F2F1EE] w-full"
+                    type="number"
+                    value={designForm.mrp}
+                    onChange={(e) => updateDesignField('mrp', e.target.value)}
+                  />
+                </div>
               </div>
               <div>
                 <label className="block text-xs mb-1 text-glacier">Discount %</label>
-                <input className="input" type="number" value={designForm.discountPct} onChange={(e) => updateDesignField('discountPct', e.target.value)} />
+                <div className="flex items-center bg-black/30 border border-white/10 rounded-full px-4">
+                  <input
+                    className="bg-transparent outline-none py-3 text-sm text-[#F2F1EE] w-full"
+                    type="number"
+                    value={designForm.discountPct}
+                    onChange={(e) => updateDesignField('discountPct', e.target.value)}
+                  />
+                  <span className="text-glacier text-sm ml-1">%</span>
+                </div>
               </div>
               <div>
                 <label className="block text-xs mb-1 text-glacier">Cost Template</label>
-                <select className="input" value={designForm.costTemplate} onChange={(e) => updateDesignTemplate(e.target.value)}>
-                  <option value="">None (enter manually)</option>
-                  {templates.map((t) => (
-                    <option key={t._id} value={t._id}>
-                      {t.name} — ₹{templateTotal(t)}
-                    </option>
-                  ))}
-                </select>
+                <Dropdown
+                  value={designForm.costTemplate}
+                  onChange={(v) => updateDesignTemplate(v)}
+                  options={[
+                    { value: '', label: 'None (enter manually)' },
+                    ...templates.map((t) => ({ value: t._id, label: `${t.name} — ₹${templateTotal(t)}` })),
+                  ]}
+                />
               </div>
               <div>
                 <label className="block text-xs mb-1 text-glacier">Costing (from template, editable)</label>
-                <input className="input" type="number" value={designForm.costPrice} onChange={(e) => updateDesignField('costPrice', e.target.value)} />
+                <div className="flex items-center bg-black/30 border border-white/10 rounded-full px-4">
+                  <span className="text-glacier text-sm mr-1">₹</span>
+                  <input
+                    className="bg-transparent outline-none py-3 text-sm text-[#F2F1EE] w-full"
+                    type="number"
+                    value={designForm.costPrice}
+                    onChange={(e) => updateDesignField('costPrice', e.target.value)}
+                  />
+                </div>
               </div>
               <div>
                 <label className="block text-xs mb-1 text-glacier">Reorder Level</label>
-                <input className="input" type="number" value={designForm.reorderLevel} onChange={(e) => updateDesignField('reorderLevel', e.target.value)} />
+                <input
+                  className="input bg-black/30 border-white/10 text-[#F2F1EE]"
+                  type="number"
+                  value={designForm.reorderLevel}
+                  onChange={(e) => updateDesignField('reorderLevel', e.target.value)}
+                />
               </div>
               <div>
                 <label className="block text-xs mb-1 text-glacier">Status</label>
-                <select className="input" value={designForm.status} onChange={(e) => updateDesignField('status', e.target.value)}>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                </select>
+                <Dropdown
+                  value={designForm.status}
+                  onChange={(v) => updateDesignField('status', v)}
+                  options={[
+                    { value: 'active', label: 'Active' },
+                    { value: 'inactive', label: 'Inactive' },
+                  ]}
+                />
               </div>
             </div>
 
-            <div className="mb-4">
-              <label className="block text-sm font-medium mb-2">Sizes &amp; Opening Stock Quantity</label>
+            <div className="border-t border-white/10 pt-4 mb-4">
+              <div className="flex items-center justify-between mb-2">
+                <label className="flex items-center gap-2 text-sm font-medium text-[#E8B563]">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 8 12 3 3 8l9 5 9-5Z" /><path d="M3 8v8l9 5 9-5V8" /></svg>
+                  Sizes &amp; Opening Stock Quantity
+                </label>
+                <span className="text-xs font-semibold text-[#E8B563]">Total T-Shirts: {totalTshirts}</span>
+              </div>
               <div className="grid grid-cols-3 sm:grid-cols-5 gap-2">
                 {SIZES.map((s) => (
                   <div key={s}>
                     <label className="block text-xs mb-1 text-glacier">{s}</label>
                     <input
-                      className="input"
+                      className="input bg-black/30 border-white/10 text-[#F2F1EE]"
                       type="number"
                       min="0"
                       value={designForm.qtyBySize[s] || ''}
@@ -672,19 +749,33 @@ export default function ProductsPage() {
                   </div>
                 ))}
               </div>
-              <p className="text-sm font-semibold mt-2">Total T-Shirts: {totalTshirts}</p>
             </div>
 
             <div className="mb-4">
               <label className="block text-xs mb-1 text-glacier">Notes</label>
-              <textarea className="input" rows={3} value={designForm.notes} onChange={(e) => updateDesignField('notes', e.target.value)} />
+              <textarea
+                className="input bg-black/30 border-white/10 text-[#F2F1EE] placeholder:text-glacier"
+                rows={3}
+                placeholder="Add any additional notes here…"
+                value={designForm.notes}
+                onChange={(e) => updateDesignField('notes', e.target.value)}
+              />
             </div>
 
             <div className="flex justify-end gap-3">
-              <button type="button" className="btn-secondary" onClick={() => setShowAdd(false)} disabled={saving}>
+              <button
+                type="button"
+                className="text-sm px-5 py-2.5 rounded-full border border-white/10 text-[#F2F1EE] hover:bg-white/5"
+                onClick={() => setShowAdd(false)}
+                disabled={saving}
+              >
                 Cancel
               </button>
-              <button type="submit" className="btn-primary" disabled={saving}>
+              <button
+                type="submit"
+                className="text-sm font-semibold px-5 py-2.5 rounded-full bg-gradient-to-b from-[#F2CD85] to-[#C9973F] text-black shadow-[0_4px_12px_rgba(232,181,99,0.35)]"
+                disabled={saving}
+              >
                 {saving ? 'Saving…' : 'Save'}
               </button>
             </div>
