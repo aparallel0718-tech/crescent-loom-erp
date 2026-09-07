@@ -104,7 +104,7 @@ export default function TopNav({ role, name }) {
           </div>
         </div>
 
-                <nav className={`hidden md:flex items-center gap-1 rounded-full px-2 py-2 ${glass}`} onMouseLeave={closeSoon}>
+                        <nav className={`hidden md:flex items-center gap-1 rounded-full px-2 py-2 ${glass}`} onMouseLeave={closeSoon}>
           {groups.map((group) => {
             const isOpen = openGroup === group.name;
             const isActive = activeGroup?.name === group.name;
@@ -113,9 +113,9 @@ export default function TopNav({ role, name }) {
                 key={group.name}
                 onMouseEnter={() => openNow(group.name)}
                 onClick={() => openNow(isOpen ? null : group.name)}
-                className={`text-xs font-semibold tracking-wider uppercase px-5 py-2 rounded-full transition-all ${
+                className={`relative text-xs font-semibold tracking-wider uppercase px-5 py-2 rounded-full transition-all before:content-[''] before:absolute before:inset-0 before:rounded-full before:pointer-events-none before:opacity-0 hover:before:opacity-100 before:transition-opacity before:bg-gradient-to-br before:from-[#E8B563]/25 before:via-transparent before:to-transparent ${
                   isOpen || isActive
-                    ? 'bg-gradient-to-b from-[#F2CD85] to-[#C9973F] text-black shadow-[0_4px_12px_rgba(232,181,99,0.35)]'
+                    ? 'bg-gradient-to-b from-[#F2CD85] to-[#C9973F] text-black shadow-[0_4px_12px_rgba(232,181,99,0.35)] before:opacity-0'
                     : 'text-glacier hover:text-[#F2F1EE]'
                 }`}
               >
@@ -149,8 +149,8 @@ export default function TopNav({ role, name }) {
       </div>
 
       <div className="absolute left-0 right-0 flex justify-center px-6">
-        <div
-          className="dropdown-panel mt-2 w-full max-w-3xl rounded-2xl border border-white/10 bg-[#131215]/95 backdrop-blur-xl shadow-xl p-5"
+                <div
+          className="dropdown-panel mt-2 w-full max-w-3xl rounded-2xl border border-white/10 bg-white/5 backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.1),0_16px_40px_rgba(0,0,0,0.5)] p-5"
           data-state={openGroup ? 'open' : 'closed'}
           onMouseEnter={() => openGroup && openNow(openGroup)}
           onMouseLeave={closeSoon}
