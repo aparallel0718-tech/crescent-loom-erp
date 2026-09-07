@@ -8,7 +8,7 @@ export default async function DashboardLayout({ children }) {
   if (!session) redirect('/login');
 
     return (
-    <div className="min-h-screen bg-chalk">
+        <div className="min-h-screen">
       <TopNav role={session.user.role} name={session.user.name} />
       <main className="p-6 md:p-8">{children}</main>
     </div>
