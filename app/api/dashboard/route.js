@@ -23,9 +23,10 @@ export async function GET(request) {
   await dbConnect();
   const { searchParams } = new URL(request.url);
   const { from, to } = parseRange(searchParams);
-  const dateFilter = { orderDate: { $gte: from, $lte: to } };
+    const dateFilter = { orderDate: { $gte: from, $lte: to } };
+  const sales = await Sale.find({ ...dateFilter, status: { $ne: 'Cancelled' } }).lean();
 
-    // Build a daily series covering every stat card: sales-derived metrics plus expenses/shipping by day
+  // Build a daily series covering every stat card: sales-derived metrics plus expenses/shipping by day
   const dailyMap = {};
   function dayKey(d) {
     return new Date(d).toISOString().slice(0, 10);
