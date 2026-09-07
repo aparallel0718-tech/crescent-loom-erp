@@ -68,6 +68,16 @@ export default function ProductsPage() {
   const [editForm, setEditForm] = useState(emptyEditForm());
   const [saving, setSaving] = useState(false);
   const [selectedIds, setSelectedIds] = useState([]);
+  const [search, setSearch] = useState('');
+  const [filterCategory, setFilterCategory] = useState('All');
+  const [filterSize, setFilterSize] = useState('All');
+  const [filterColour, setFilterColour] = useState('All');
+  const [filterStatus, setFilterStatus] = useState('All');
+  const [sortKey, setSortKey] = useState('name');
+  const [sortDir, setSortDir] = useState('asc');
+  const [page, setPage] = useState(1);
+  const [openMenuId, setOpenMenuId] = useState(null);
+  const pageSize = 15;
 
   async function load() {
     setLoading(true);
@@ -290,10 +300,12 @@ export default function ProductsPage() {
   }
 
   function toggleSelectAll() {
-    if (selectedIds.length === rows.length) {
-      setSelectedIds([]);
+    const pageIds = pageRows.map((r) => r._id);
+    const allSelected = pageIds.length > 0 && pageIds.every((id) => selectedIds.includes(id));
+    if (allSelected) {
+      setSelectedIds((prev) => prev.filter((id) => !pageIds.includes(id)));
     } else {
-      setSelectedIds(rows.map((r) => r._id));
+      setSelectedIds((prev) => [...new Set([...prev, ...pageIds])]);
     }
   }
 
@@ -329,57 +341,123 @@ export default function ProductsPage() {
     else setError((await res.json()).error || 'Recalculate failed');
   }
 
+  const categories = ['All', ...new Set(rows.map((r) => r.category).filter(Boolean))];
+  const sizes = ['All', ...new Set(rows.map((r) => r.size).filter(Boolean))];
+  const colours = ['All', ...new Set(rows.map((r) => r.colour).filter(Boolean))];
+
+  const filteredRows = rows
+    .filter((r) => {
+      const q = search.trim().toLowerCase();
+      if (q && !`${r.name} ${r.sku} ${r.category}`.toLowerCase().includes(q)) return false;
+      if (filterCategory !== 'All' && r.category !== filterCategory) return false;
+      if (filterSize !== 'All' && r.size !== filterSize) return false;
+      if (filterColour !== 'All' && r.colour !== filterColour) return false;
+      if (filterStatus !== 'All' && r.status !== filterStatus.toLowerCase()) return false;
+      return true;
+    })
+    .sort((a, b) => {
+      const av = a[sortKey] ?? '';
+      const bv = b[sortKey] ?? '';
+      if (typeof av === 'number' && typeof bv === 'number') return sortDir === 'asc' ? av - bv : bv - av;
+      return sortDir === 'asc' ? String(av).localeCompare(String(bv)) : String(bv).localeCompare(String(av));
+    });
+
+  const totalPages = Math.max(1, Math.ceil(filteredRows.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const pageRows = filteredRows.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  function toggleSort(key) {
+    if (sortKey === key) setSortDir((d) => (d === 'asc' ? 'desc' : 'asc'));
+    else {
+      setSortKey(key);
+      setSortDir('asc');
+    }
+  }
+
+  function SortArrow({ column }) {
+    if (sortKey !== column) return <span className="text-glacier/40 ml-1">↕</span>;
+    return <span className="text-gold ml-1">{sortDir === 'asc' ? '↑' : '↓'}</span>;
+  }
+
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold">Products &amp; Styles</h1>
-        <div className="flex items-center gap-2">
-          {selectedIds.length > 0 && (
-            <button
-              type="button"
-              className="text-xs text-red-600 border border-red-300 rounded px-3 py-2 hover:bg-red-50"
-              onClick={handleBulkDelete}
-            >
-              Delete Selected ({selectedIds.length})
-            </button>
-          )}
-          <button className="btn-primary" onClick={openAdd}>
-            + Add Design
+        <h1 className="text-2xl font-semibold text-[#F2F1EE]">Products &amp; Styles</h1>
+        {selectedIds.length > 0 && (
+          <button
+            type="button"
+            className="text-xs text-red-400 border border-red-400/40 rounded-full px-3 py-2 hover:bg-red-400/10"
+            onClick={handleBulkDelete}
+          >
+            Delete Selected ({selectedIds.length})
           </button>
-        </div>
+        )}
       </div>
 
-      {error && <p className="text-sm text-red-600 mb-3">{error}</p>}
+      {error && <p className="text-sm text-red-400 mb-3">{error}</p>}
+
+      <div className="card mb-4 flex flex-wrap items-center gap-3">
+        <div className="flex items-center gap-2 bg-black/30 border border-white/10 rounded-full px-3 py-2 text-sm text-glacier flex-1 min-w-[220px]">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
+          <input
+            className="bg-transparent outline-none w-full text-[#F2F1EE] placeholder:text-glacier"
+            placeholder="Search by name, SKU, category…"
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+          />
+        </div>
+        <select className="input !w-auto bg-black/30 border-white/10 text-[#F2F1EE]" value={filterCategory} onChange={(e) => { setFilterCategory(e.target.value); setPage(1); }}>
+          {categories.map((c) => <option key={c} value={c}>{c === 'All' ? 'Category: All' : c}</option>)}
+        </select>
+        <select className="input !w-auto bg-black/30 border-white/10 text-[#F2F1EE]" value={filterSize} onChange={(e) => { setFilterSize(e.target.value); setPage(1); }}>
+          {sizes.map((s) => <option key={s} value={s}>{s === 'All' ? 'Size: All' : s}</option>)}
+        </select>
+        <select className="input !w-auto bg-black/30 border-white/10 text-[#F2F1EE]" value={filterColour} onChange={(e) => { setFilterColour(e.target.value); setPage(1); }}>
+          {colours.map((c) => <option key={c} value={c}>{c === 'All' ? 'Colour: All' : c}</option>)}
+        </select>
+        <select className="input !w-auto bg-black/30 border-white/10 text-[#F2F1EE]" value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}>
+          <option value="All">Status: All</option>
+          <option value="Active">Active</option>
+          <option value="Inactive">Inactive</option>
+        </select>
+        <button
+          className="ml-auto text-xs font-semibold px-4 py-2 rounded-full bg-gradient-to-b from-[#F2CD85] to-[#C9973F] text-black shadow-[0_4px_12px_rgba(232,181,99,0.35)]"
+          onClick={openAdd}
+        >
+          + Add Product
+        </button>
+      </div>
 
       <div className="card overflow-x-auto">
         {loading ? (
           <p className="text-sm text-glacier">Loading…</p>
-        ) : rows.length === 0 ? (
-          <p className="text-sm text-glacier">No products yet.</p>
+        ) : filteredRows.length === 0 ? (
+          <p className="text-sm text-glacier">No products match your filters.</p>
         ) : (
+          <>
           <table className="w-full">
             <thead>
               <tr>
                 <th>
                   <input
                     type="checkbox"
-                    checked={rows.length > 0 && selectedIds.length === rows.length}
+                    checked={pageRows.length > 0 && pageRows.every((r) => selectedIds.includes(r._id))}
                     onChange={toggleSelectAll}
                   />
                 </th>
-                <th>Name</th>
-                <th>SKU</th>
-                <th>Category</th>
-                <th>Size</th>
-                <th>Colour</th>
-                <th>Selling Price</th>
-                <th>Cost</th>
-                <th>Status</th>
-                <th></th>
+                <th className="cursor-pointer select-none" onClick={() => toggleSort('name')}>Name<SortArrow column="name" /></th>
+                <th className="cursor-pointer select-none" onClick={() => toggleSort('sku')}>SKU<SortArrow column="sku" /></th>
+                <th className="cursor-pointer select-none" onClick={() => toggleSort('category')}>Category<SortArrow column="category" /></th>
+                <th className="cursor-pointer select-none" onClick={() => toggleSort('size')}>Size<SortArrow column="size" /></th>
+                <th className="cursor-pointer select-none" onClick={() => toggleSort('colour')}>Colour<SortArrow column="colour" /></th>
+                <th className="cursor-pointer select-none" onClick={() => toggleSort('sellingPrice')}>Selling Price<SortArrow column="sellingPrice" /></th>
+                <th className="cursor-pointer select-none" onClick={() => toggleSort('costPrice')}>Cost<SortArrow column="costPrice" /></th>
+                <th className="cursor-pointer select-none" onClick={() => toggleSort('status')}>Status<SortArrow column="status" /></th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              {rows.map((row) => {
+              {pageRows.map((row) => {
                 const tpl = templates.find((t) => t._id === row.costTemplate);
                 const currentTplTotal = tpl ? templateTotal(tpl) : null;
                 const isStale =
@@ -393,7 +471,13 @@ export default function ProductsPage() {
                         onChange={() => toggleSelect(row._id)}
                       />
                     </td>
-                    <td>{row.name}</td>
+                    <td className="flex items-center gap-2 py-2">
+                      <span
+                        className="w-4 h-4 rounded-full border border-white/20 shrink-0"
+                        style={{ background: row.colour ? row.colour.toLowerCase().replace(/\s+/g, '') : '#666' }}
+                      />
+                      {row.name}
+                    </td>
                     <td>{row.sku}</td>
                     <td>{row.category}</td>
                     <td>{row.size}</td>
@@ -402,7 +486,7 @@ export default function ProductsPage() {
                     <td>
                       ₹{row.costPrice}
                       {isStale && (
-                        <div className="text-xs text-amber-600 mt-1">
+                        <div className="text-xs text-amber-400 mt-1">
                           Template changed: ₹{row.costTemplateAppliedTotal} → ₹{currentTplTotal}{' '}
                           <button type="button" className="underline" onClick={() => quickRecalc(row)}>
                             Update
@@ -410,20 +494,69 @@ export default function ProductsPage() {
                         </div>
                       )}
                     </td>
-                    <td>{row.status}</td>
-                    <td className="text-right whitespace-nowrap">
-                      <button className="text-xs text-gold mr-3" onClick={() => openEdit(row)}>
-                        Edit
+                    <td>
+                      <span className={`inline-flex items-center gap-1.5 text-xs px-2 py-1 rounded-full ${
+                        row.status === 'active' ? 'bg-emerald-500/15 text-emerald-400' : 'bg-gray-500/15 text-gray-400'
+                      }`}>
+                        <span className={`w-1.5 h-1.5 rounded-full ${row.status === 'active' ? 'bg-emerald-400' : 'bg-gray-400'}`} />
+                        {row.status === 'active' ? 'Active' : 'Inactive'}
+                      </span>
+                    </td>
+                    <td className="relative text-right">
+                      <button
+                        className="text-glacier hover:text-[#F2F1EE] px-2"
+                        onClick={() => setOpenMenuId(openMenuId === row._id ? null : row._id)}
+                      >
+                        •••
                       </button>
-                      <button className="text-xs text-red-500" onClick={() => handleDelete(row)}>
-                        Delete
-                      </button>
+                      {openMenuId === row._id && (
+                        <div className="absolute right-0 mt-1 w-32 bg-[#131215] border border-white/10 rounded-lg shadow-xl z-20 text-left">
+                          <button
+                            className="block w-full text-left text-xs px-3 py-2 text-gold hover:bg-white/5"
+                            onClick={() => { setOpenMenuId(null); openEdit(row); }}
+                          >
+                            Edit
+                          </button>
+                          <button
+                            className="block w-full text-left text-xs px-3 py-2 text-red-400 hover:bg-white/5"
+                            onClick={() => { setOpenMenuId(null); handleDelete(row); }}
+                          >
+                            Delete
+                          </button>
+                        </div>
+                      )}
                     </td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
+          <div className="flex items-center justify-between pt-4 text-xs text-glacier">
+            <span>{selectedIds.length} selected</span>
+            <span>
+              Showing {(currentPage - 1) * pageSize + 1}–{Math.min(currentPage * pageSize, filteredRows.length)} of {filteredRows.length} products
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                className="w-7 h-7 rounded-full border border-white/10 disabled:opacity-30"
+                disabled={currentPage === 1}
+                onClick={() => setPage((p) => p - 1)}
+              >
+                ‹
+              </button>
+              <span className="w-6 h-6 rounded-full bg-gold text-black flex items-center justify-center text-[11px] font-semibold">
+                {currentPage}
+              </span>
+              <button
+                className="w-7 h-7 rounded-full border border-white/10 disabled:opacity-30"
+                disabled={currentPage === totalPages}
+                onClick={() => setPage((p) => p + 1)}
+              >
+                ›
+              </button>
+            </div>
+          </div>
+          </>
         )}
       </div>
 
