@@ -81,11 +81,15 @@ table th {
   @apply text-left text-xs uppercase tracking-wide text-glacier font-medium px-3 py-2;
 }
 table td {
-  @apply px-3 py-2 text-sm border-t border-gray-100;
+  @apply px-3 py-2 text-sm;
+  border-top: none;
 }
 table tbody tr {
   transition: background-color 150ms ease-out;
 }
+table tbody tr:nth-child(even) {
+  background-color: rgba(255, 255, 255, 0.03);
+}
 table tbody tr:hover {
-  @apply bg-cream/60;
+  background-color: rgba(232, 181, 99, 0.08);
 }
