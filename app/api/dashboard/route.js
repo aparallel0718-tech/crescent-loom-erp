@@ -25,18 +25,43 @@ export async function GET(request) {
   const { from, to } = parseRange(searchParams);
   const dateFilter = { orderDate: { $gte: from, $lte: to } };
 
-  const sales = await Sale.find({ ...dateFilter, status: { $ne: 'Cancelled' } }).lean();  // Build a daily series for the Revenue Overview chart
+    // Build a daily series covering every stat card: sales-derived metrics plus expenses/shipping by day
   const dailyMap = {};
+  function dayKey(d) {
+    return new Date(d).toISOString().slice(0, 10);
+  }
+  function ensureDay(day) {
+    if (!dailyMap[day]) {
+      dailyMap[day] = {
+        date: day,
+        revenue: 0,
+        sales: 0,
+        cogs: 0,
+        profit: 0,
+        orderCount: 0,
+        marketing: 0,
+        operating: 0,
+        shipping: 0,
+      };
+    }
+    return dailyMap[day];
+  }
+
   for (const s of sales) {
-    const day = new Date(s.orderDate).toISOString().slice(0, 10); // YYYY-MM-DD
-    if (!dailyMap[day]) dailyMap[day] = { date: day, revenue: 0, sales: 0, profit: 0 };
+    const day = ensureDay(dayKey(s.orderDate));
     const itemRevenue = s.items.reduce((sum, it) => sum + (it.qty || 0) * (it.sellingPrice || 0), 0);
     const itemCost = s.items.reduce((sum, it) => sum + (it.qty || 0) * (it.costPrice || 0), 0);
-    dailyMap[day].revenue += itemRevenue;
-    dailyMap[day].sales += itemRevenue - (s.discount || 0);
-    dailyMap[day].profit += itemRevenue - itemCost - (s.discount || 0);
+    day.revenue += itemRevenue;
+    day.sales += itemRevenue - (s.discount || 0);
+    day.cogs += itemCost;
+    day.profit += itemRevenue - itemCost - (s.discount || 0);
+    day.orderCount += 1;
   }
-  const dailySeries = Object.values(dailyMap).sort((a, b) => a.date.localeCompare(b.date));  // Most recent orders for the Recent Orders widget
+
+  // expenses and shipments are fetched further below in the existing code — this loop is inserted
+  // again after those fetches complete (see next edit) so it can read `expenses` and `shipments`.
+  const dailySeries = Object.values(dailyMap).sort((a, b) => a.date.localeCompare(b.date));  
+// Most recent orders for the Recent Orders widget
   const recentOrders = [...sales]
     .sort((a, b) => new Date(b.orderDate) - new Date(a.orderDate))
     .slice(0, 5)
@@ -61,13 +86,33 @@ export async function GET(request) {
   const grossProfit = netSales - cogs;
   const grossMarginPct = netSales > 0 ? (grossProfit / netSales) * 100 : 0;
 
-  const shipments = await Shipment.find({ dispatchDate: { $gte: from, $lte: to } }).lean();
+    const shipments = await Shipment.find({ dispatchDate: { $gte: from, $lte: to } }).lean();
   const shippingCost = shipments.reduce((sum, s) => sum + (s.shippingCost || 0), 0);
 
   const expenses = await Expense.find({ date: { $gte: from, $lte: to } }).lean();
   const marketingExpense = expenses.filter((e) => e.type === 'Marketing').reduce((s, e) => s + e.amount, 0);
   const operatingExpense = expenses.filter((e) => e.type === 'Operating').reduce((s, e) => s + e.amount, 0);
   const totalExpense = marketingExpense + operatingExpense + shippingCost;
+
+  // Fold expenses/shipments into the daily series now that they're loaded, then derive per-day margins
+  for (const e of expenses) {
+    const day = ensureDay(dayKey(e.date));
+    if (e.type === 'Marketing') day.marketing += e.amount || 0;
+    if (e.type === 'Operating') day.operating += e.amount || 0;
+  }
+  for (const sh of shipments) {
+    const day = ensureDay(dayKey(sh.dispatchDate));
+    day.shipping += sh.shippingCost || 0;
+  }
+  for (const day of Object.values(dailyMap)) {
+    const dayExpense = day.marketing + day.operating + day.shipping;
+    day.expense = dayExpense;
+    day.netProfit = day.profit - dayExpense;
+    day.grossMarginPct = day.sales > 0 ? (day.profit / day.sales) * 100 : 0;
+    day.netMarginPct = day.sales > 0 ? (day.netProfit / day.sales) * 100 : 0;
+    day.avgOrderValue = day.orderCount > 0 ? day.sales / day.orderCount : 0;
+  }
+  dailySeries.sort((a, b) => a.date.localeCompare(b.date));
 
   const netProfit = grossProfit - totalExpense;
   const netMarginPct = netSales > 0 ? (netProfit / netSales) * 100 : 0;
