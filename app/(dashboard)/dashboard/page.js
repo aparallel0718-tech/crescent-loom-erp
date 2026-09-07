@@ -86,9 +86,9 @@ export default function DashboardPage() {
       </div>
 
                   <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4">
-                <StatCard label="Total Revenue" value={inr(data.totalRevenue)} icon={Icon.revenue} color="gold" />
-        <StatCard label="Net Sales" value={inr(data.netSales)} sub={`${data.orderCount} orders`} icon={Icon.sales} color="blue" />
-        <StatCard label="Gross Profit" value={inr(data.grossProfit)} tone={data.grossProfit >= 0 ? 'good' : 'bad'} icon={Icon.profit} color="green" />
+                        <StatCard label="Total Revenue" value={inr(data.totalRevenue)} icon={Icon.revenue} color="gold" trend={data.dailySeries.map((d) => d.revenue)} />
+        <StatCard label="Net Sales" value={inr(data.netSales)} sub={`${data.orderCount} orders`} icon={Icon.sales} color="blue" trend={data.dailySeries.map((d) => d.sales)} />
+        <StatCard label="Gross Profit" value={inr(data.grossProfit)} tone={data.grossProfit >= 0 ? 'good' : 'bad'} icon={Icon.profit} color="green" trend={data.dailySeries.map((d) => d.profit)} />
         <StatCard label="Net Profit" value={inr(data.netProfit)} tone={data.netProfit >= 0 ? 'good' : 'bad'} icon={Icon.wallet} color="red" />
       </div>
 
