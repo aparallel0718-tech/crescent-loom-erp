@@ -396,7 +396,7 @@ export default function ProductsPage() {
 
       {error && <p className="text-sm text-red-400 mb-3">{error}</p>}
 
-            <div className="card mb-4">
+                  <div className="card mb-4 relative z-20">
         <div className="flex items-center gap-2 bg-black/30 border border-white/10 rounded-full px-4 py-3 text-sm text-glacier mb-3">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
           <input
