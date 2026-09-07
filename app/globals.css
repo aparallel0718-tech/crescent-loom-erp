@@ -12,8 +12,13 @@
 
 body {
   font-family: 'DM Sans', system-ui, sans-serif;
-  background-color: #0B0B0C;
   color: #F2F1EE;
+  background-image: linear-gradient(180deg, rgba(11,11,12,0.88), rgba(11,11,12,0.96)), url('/images/texture-panel.jpg');
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+  background-repeat: no-repeat;
+  min-height: 100vh;
 }
 
 * {
