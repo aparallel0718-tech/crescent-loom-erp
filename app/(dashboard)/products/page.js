@@ -396,8 +396,8 @@ export default function ProductsPage() {
 
       {error && <p className="text-sm text-red-400 mb-3">{error}</p>}
 
-      <div className="card mb-4 flex flex-wrap items-center gap-3">
-        <div className="flex items-center gap-2 bg-black/30 border border-white/10 rounded-full px-3 py-2 text-sm text-glacier flex-1 min-w-[220px]">
+            <div className="card mb-4">
+        <div className="flex items-center gap-2 bg-black/30 border border-white/10 rounded-full px-4 py-3 text-sm text-glacier mb-3">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="7" /><path d="m21 21-4.3-4.3" /></svg>
           <input
             className="bg-transparent outline-none w-full text-[#F2F1EE] placeholder:text-glacier"
@@ -406,26 +406,44 @@ export default function ProductsPage() {
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           />
         </div>
-        <select className="input !w-auto bg-black/30 border-white/10 text-[#F2F1EE]" value={filterCategory} onChange={(e) => { setFilterCategory(e.target.value); setPage(1); }}>
-          {categories.map((c) => <option key={c} value={c}>{c === 'All' ? 'Category: All' : c}</option>)}
-        </select>
-        <select className="input !w-auto bg-black/30 border-white/10 text-[#F2F1EE]" value={filterSize} onChange={(e) => { setFilterSize(e.target.value); setPage(1); }}>
-          {sizes.map((s) => <option key={s} value={s}>{s === 'All' ? 'Size: All' : s}</option>)}
-        </select>
-        <select className="input !w-auto bg-black/30 border-white/10 text-[#F2F1EE]" value={filterColour} onChange={(e) => { setFilterColour(e.target.value); setPage(1); }}>
-          {colours.map((c) => <option key={c} value={c}>{c === 'All' ? 'Colour: All' : c}</option>)}
-        </select>
-        <select className="input !w-auto bg-black/30 border-white/10 text-[#F2F1EE]" value={filterStatus} onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}>
-          <option value="All">Status: All</option>
-          <option value="Active">Active</option>
-          <option value="Inactive">Inactive</option>
-        </select>
-        <button
-          className="ml-auto text-xs font-semibold px-4 py-2 rounded-full bg-gradient-to-b from-[#F2CD85] to-[#C9973F] text-black shadow-[0_4px_12px_rgba(232,181,99,0.35)]"
-          onClick={openAdd}
-        >
-          + Add Product
-        </button>
+        <div className="flex items-center gap-3">
+          <select
+            className="flex-1 bg-black/30 border border-white/10 rounded-full px-4 py-3 text-sm text-[#F2F1EE] outline-none"
+            value={filterCategory}
+            onChange={(e) => { setFilterCategory(e.target.value); setPage(1); }}
+          >
+            {categories.map((c) => <option key={c} value={c}>{c === 'All' ? 'Category: All' : c}</option>)}
+          </select>
+          <select
+            className="flex-1 bg-black/30 border border-white/10 rounded-full px-4 py-3 text-sm text-[#F2F1EE] outline-none"
+            value={filterSize}
+            onChange={(e) => { setFilterSize(e.target.value); setPage(1); }}
+          >
+            {sizes.map((s) => <option key={s} value={s}>{s === 'All' ? 'Size: All' : s}</option>)}
+          </select>
+          <select
+            className="flex-1 bg-black/30 border border-white/10 rounded-full px-4 py-3 text-sm text-[#F2F1EE] outline-none"
+            value={filterColour}
+            onChange={(e) => { setFilterColour(e.target.value); setPage(1); }}
+          >
+            {colours.map((c) => <option key={c} value={c}>{c === 'All' ? 'Colour: All' : c}</option>)}
+          </select>
+          <select
+            className="flex-1 bg-black/30 border border-white/10 rounded-full px-4 py-3 text-sm text-[#F2F1EE] outline-none"
+            value={filterStatus}
+            onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}
+          >
+            <option value="All">Status: All</option>
+            <option value="Active">Active</option>
+            <option value="Inactive">Inactive</option>
+          </select>
+          <button
+            className="text-sm font-semibold px-6 py-3 rounded-full bg-gradient-to-b from-[#F2CD85] to-[#C9973F] text-black shadow-[0_4px_12px_rgba(232,181,99,0.35)] whitespace-nowrap"
+            onClick={openAdd}
+          >
+            + Add Product
+          </button>
+        </div>
       </div>
 
       <div className="card overflow-x-auto">
