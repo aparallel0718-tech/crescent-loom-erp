@@ -1,6 +1,6 @@
 'use client';
 import { useEffect, useState } from 'react';
-
+import Dropdown from '../../../components/Dropdown';
 const SIZES = ['S', 'M', 'L', 'XL', 'XXL'];
 
 function slugifySku(name) {
@@ -406,37 +406,35 @@ export default function ProductsPage() {
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
           />
         </div>
-        <div className="flex items-center gap-3">
-          <select
-            className="flex-1 bg-black/30 border border-white/10 rounded-full px-4 py-3 text-sm text-[#F2F1EE] outline-none"
+                <div className="flex items-center gap-3">
+          <Dropdown
+            className="flex-1"
             value={filterCategory}
-            onChange={(e) => { setFilterCategory(e.target.value); setPage(1); }}
-          >
-            {categories.map((c) => <option key={c} value={c}>{c === 'All' ? 'Category: All' : c}</option>)}
-          </select>
-          <select
-            className="flex-1 bg-black/30 border border-white/10 rounded-full px-4 py-3 text-sm text-[#F2F1EE] outline-none"
+            onChange={(v) => { setFilterCategory(v); setPage(1); }}
+            options={categories.map((c) => ({ value: c, label: c === 'All' ? 'Category: All' : c }))}
+          />
+          <Dropdown
+            className="flex-1"
             value={filterSize}
-            onChange={(e) => { setFilterSize(e.target.value); setPage(1); }}
-          >
-            {sizes.map((s) => <option key={s} value={s}>{s === 'All' ? 'Size: All' : s}</option>)}
-          </select>
-          <select
-            className="flex-1 bg-black/30 border border-white/10 rounded-full px-4 py-3 text-sm text-[#F2F1EE] outline-none"
+            onChange={(v) => { setFilterSize(v); setPage(1); }}
+            options={sizes.map((s) => ({ value: s, label: s === 'All' ? 'Size: All' : s }))}
+          />
+          <Dropdown
+            className="flex-1"
             value={filterColour}
-            onChange={(e) => { setFilterColour(e.target.value); setPage(1); }}
-          >
-            {colours.map((c) => <option key={c} value={c}>{c === 'All' ? 'Colour: All' : c}</option>)}
-          </select>
-          <select
-            className="flex-1 bg-black/30 border border-white/10 rounded-full px-4 py-3 text-sm text-[#F2F1EE] outline-none"
+            onChange={(v) => { setFilterColour(v); setPage(1); }}
+            options={colours.map((c) => ({ value: c, label: c === 'All' ? 'Colour: All' : c }))}
+          />
+          <Dropdown
+            className="flex-1"
             value={filterStatus}
-            onChange={(e) => { setFilterStatus(e.target.value); setPage(1); }}
-          >
-            <option value="All">Status: All</option>
-            <option value="Active">Active</option>
-            <option value="Inactive">Inactive</option>
-          </select>
+            onChange={(v) => { setFilterStatus(v); setPage(1); }}
+            options={[
+              { value: 'All', label: 'Status: All' },
+              { value: 'Active', label: 'Active' },
+              { value: 'Inactive', label: 'Inactive' },
+            ]}
+          />
           <button
             className="text-sm font-semibold px-6 py-3 rounded-full bg-gradient-to-b from-[#F2CD85] to-[#C9973F] text-black shadow-[0_4px_12px_rgba(232,181,99,0.35)] whitespace-nowrap"
             onClick={openAdd}
