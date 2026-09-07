@@ -54,7 +54,7 @@ function iconFor(item) {
   return ICONS[item.href.replace('/', '')] || ICONS.dashboard;
 }
 
-const glass = 'bg-white/5 backdrop-blur-md border border-white/10 shadow-sm';
+const glass = 'bg-white/5 backdrop-blur-md border border-white/10 shadow-[inset_0_1px_0_rgba(255,255,255,0.15),0_8px_24px_rgba(0,0,0,0.35)]';
 
 export default function TopNav({ role, name }) {
   const pathname = usePathname();
@@ -104,7 +104,7 @@ export default function TopNav({ role, name }) {
           </div>
         </div>
 
-        <nav className={`hidden md:flex items-center gap-1 rounded-full px-2 py-1.5 ${glass}`} onMouseLeave={closeSoon}>
+                <nav className={`hidden md:flex items-center gap-1 rounded-full px-2 py-2 ${glass}`} onMouseLeave={closeSoon}>
           {groups.map((group) => {
             const isOpen = openGroup === group.name;
             const isActive = activeGroup?.name === group.name;
@@ -113,8 +113,10 @@ export default function TopNav({ role, name }) {
                 key={group.name}
                 onMouseEnter={() => openNow(group.name)}
                 onClick={() => openNow(isOpen ? null : group.name)}
-                className={`text-xs font-semibold tracking-wider uppercase px-4 py-1.5 rounded-full transition-colors ${
-                  isOpen || isActive ? 'bg-gold text-black' : 'text-glacier hover:text-[#F2F1EE]'
+                className={`text-xs font-semibold tracking-wider uppercase px-5 py-2 rounded-full transition-all ${
+                  isOpen || isActive
+                    ? 'bg-gradient-to-b from-[#F2CD85] to-[#C9973F] text-black shadow-[0_4px_12px_rgba(232,181,99,0.35)]'
+                    : 'text-glacier hover:text-[#F2F1EE]'
                 }`}
               >
                 {group.name}
