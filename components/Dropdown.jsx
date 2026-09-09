@@ -45,7 +45,6 @@ export default function Dropdown({ value, options, onChange, className = '' }) {
           ))}
         </div>
       )}
-      )}
     </div>
   );
 }
