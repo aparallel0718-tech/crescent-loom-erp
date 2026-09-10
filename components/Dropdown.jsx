@@ -28,7 +28,7 @@ export default function Dropdown({ value, options, onChange, className = '' }) {
         </svg>
       </button>
             {open && (
-        <div className="absolute left-0 right-0 mt-2 rounded-xl border border-[#E8B563]/30 bg-white/5 backdrop-blur-xl shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_16px_40px_rgba(0,0,0,0.5)] z-30 py-1 max-h-64 overflow-y-auto">
+                <div className="absolute left-0 right-0 mt-2 rounded-xl border border-[#E8B563]/30 bg-[#0D0C0F]/95 backdrop-blur-2xl shadow-[inset_0_1px_0_rgba(255,255,255,0.12),0_16px_40px_rgba(0,0,0,0.5)] z-30 py-1 max-h-64 overflow-y-auto">
           {options.map((o) => (
             <button
               key={o.value}
