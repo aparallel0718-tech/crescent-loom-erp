@@ -788,102 +788,179 @@ export default function ProductsPage() {
         </div>
       )}
 
-      {showEdit && (
-        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
+            {showEdit && (
+        <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
           <form
             onSubmit={handleEditSubmit}
-            className="bg-white rounded-xl p-6 w-full max-w-lg max-h-[90vh] overflow-y-auto"
+            className="bg-[#131215] border border-[#E8B563]/30 rounded-2xl p-6 w-full max-w-2xl max-h-[90vh] overflow-y-auto text-[#F2F1EE] shadow-[0_0_60px_rgba(232,181,99,0.08)]"
           >
-            <h2 className="text-lg font-semibold mb-4">Edit Product</h2>
+            <div className="flex items-start justify-between mb-5">
+              <div className="flex items-center gap-3">
+                <div className="w-11 h-11 rounded-full border border-[#E8B563]/40 flex items-center justify-center text-[#E8B563]">
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M21 8 12 3 3 8l9 5 9-5Z" /><path d="M3 8v8l9 5 9-5V8" /></svg>
+                </div>
+                <div>
+                  <h2 className="text-lg font-semibold">Edit Product</h2>
+                  <p className="text-xs text-glacier">Update product details and make changes to your catalog.</p>
+                </div>
+              </div>
+              <button type="button" onClick={() => setShowEdit(false)} className="w-8 h-8 rounded-full border border-white/10 flex items-center justify-center text-glacier hover:text-[#F2F1EE]">
+                {'\u00D7'}
+              </button>
+            </div>
+
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4">
               <div>
-                <label className="block text-xs mb-1 text-glacier">Product Name</label>
-                <input className="input" value={editForm.name} required onChange={(e) => updateEditField('name', e.target.value)} />
+                <label className="block text-[11px] uppercase tracking-wide mb-1 text-glacier">Product Name</label>
+                <input className="input bg-black/30 border-white/10 text-[#F2F1EE]" value={editForm.name} required onChange={(e) => updateEditField('name', e.target.value)} />
               </div>
               <div>
-                <label className="block text-xs mb-1 text-glacier">SKU</label>
-                <input className="input" value={editForm.sku} required onChange={(e) => updateEditField('sku', e.target.value)} />
+                <label className="block text-[11px] uppercase tracking-wide mb-1 text-glacier">SKU</label>
+                <input className="input bg-black/30 border-white/10 text-[#F2F1EE]" value={editForm.sku} required onChange={(e) => updateEditField('sku', e.target.value)} />
               </div>
               <div>
-                <label className="block text-xs mb-1 text-glacier">Category</label>
-                <input className="input" value={editForm.category} onChange={(e) => updateEditField('category', e.target.value)} />
+                <label className="block text-[11px] uppercase tracking-wide mb-1 text-glacier">Category</label>
+                <Dropdown
+                  value={editForm.category}
+                  onChange={(v) => updateEditField('category', v)}
+                  options={[{ value: '', label: 'Select category' }, ...designCategories.map((c) => ({ value: c, label: c }))]}
+                />
               </div>
               <div>
-                <label className="block text-xs mb-1 text-glacier">Collection</label>
-                <input className="input" value={editForm.productCollection} onChange={(e) => updateEditField('productCollection', e.target.value)} />
+                <label className="block text-[11px] uppercase tracking-wide mb-1 text-glacier">Collection</label>
+                <Dropdown
+                  value={editForm.productCollection}
+                  onChange={(v) => updateEditField('productCollection', v)}
+                  options={[{ value: '', label: 'Select collection' }, ...designCollections.map((c) => ({ value: c, label: c }))]}
+                />
               </div>
               <div>
-                <label className="block text-xs mb-1 text-glacier">Size</label>
-                <input className="input" value={editForm.size} onChange={(e) => updateEditField('size', e.target.value)} />
+                <label className="block text-[11px] uppercase tracking-wide mb-1 text-glacier">Size</label>
+                <input className="input bg-black/30 border-white/10 text-[#F2F1EE]" value={editForm.size} onChange={(e) => updateEditField('size', e.target.value)} />
               </div>
               <div>
-                <label className="block text-xs mb-1 text-glacier">Colour</label>
-                <input className="input" value={editForm.colour} onChange={(e) => updateEditField('colour', e.target.value)} />
+                <label className="block text-[11px] uppercase tracking-wide mb-1 text-glacier">Colour</label>
+                <Dropdown
+                  colorSwatch
+                  value={editForm.colour}
+                  onChange={(v) => updateEditField('colour', v)}
+                  options={[{ value: '', label: 'Select colour' }, ...designColours.map((c) => ({ value: c, label: c }))]}
+                />
               </div>
               <div>
-                <label className="block text-xs mb-1 text-glacier">Material</label>
-                <input className="input" value={editForm.material} onChange={(e) => updateEditField('material', e.target.value)} />
+                <label className="block text-[11px] uppercase tracking-wide mb-1 text-glacier">Material</label>
+                <Dropdown
+                  value={editForm.material}
+                  onChange={(v) => updateEditField('material', v)}
+                  options={[{ value: '', label: 'Select material' }, ...designMaterials.map((m) => ({ value: m, label: m }))]}
+                />
               </div>
               <div>
-                <label className="block text-xs mb-1 text-glacier">Selling Price</label>
-                <input className="input" type="number" value={editForm.sellingPrice} onChange={(e) => updateEditField('sellingPrice', Number(e.target.value))} />
+                <label className="block text-[11px] uppercase tracking-wide mb-1 text-glacier">Selling Price</label>
+                <div className="flex items-center bg-black/30 border border-white/10 rounded-full px-4">
+                  <span className="text-glacier text-sm mr-1">{'\u20B9'}</span>
+                  <input
+                    className="bg-transparent outline-none py-3 text-sm text-[#F2F1EE] w-full"
+                    type="number"
+                    value={editForm.sellingPrice}
+                    onChange={(e) => updateEditField('sellingPrice', Number(e.target.value))}
+                  />
+                </div>
               </div>
               <div>
-                <label className="block text-xs mb-1 text-glacier">MRP</label>
-                <input className="input" type="number" value={editForm.mrp} onChange={(e) => updateEditField('mrp', Number(e.target.value))} />
+                <label className="block text-[11px] uppercase tracking-wide mb-1 text-glacier">MRP</label>
+                <div className="flex items-center bg-black/30 border border-white/10 rounded-full px-4">
+                  <span className="text-glacier text-sm mr-1">{'\u20B9'}</span>
+                  <input
+                    className="bg-transparent outline-none py-3 text-sm text-[#F2F1EE] w-full"
+                    type="number"
+                    value={editForm.mrp}
+                    onChange={(e) => updateEditField('mrp', Number(e.target.value))}
+                  />
+                </div>
               </div>
               <div>
-                <label className="block text-xs mb-1 text-glacier">Discount %</label>
-                <input className="input" type="number" value={editForm.discountPct} onChange={(e) => updateEditField('discountPct', Number(e.target.value))} />
+                <label className="block text-[11px] uppercase tracking-wide mb-1 text-glacier">Discount %</label>
+                <div className="flex items-center bg-black/30 border border-white/10 rounded-full px-4">
+                  <input
+                    className="bg-transparent outline-none py-3 text-sm text-[#F2F1EE] w-full"
+                    type="number"
+                    value={editForm.discountPct}
+                    onChange={(e) => updateEditField('discountPct', Number(e.target.value))}
+                  />
+                  <span className="text-glacier text-sm ml-1">%</span>
+                </div>
               </div>
               <div>
-                <label className="block text-xs mb-1 text-glacier">Cost Template</label>
-                <select className="input" value={editForm.costTemplate} onChange={(e) => updateEditTemplate(e.target.value)}>
-                  <option value="">None</option>
-                  {templates.map((t) => (
-                    <option key={t._id} value={t._id}>
-                      {t.name} {'\u2014'} {'\u20B9'}{templateTotal(t)}
-                    </option>
-                  ))}
-                </select>
+                <label className="block text-[11px] uppercase tracking-wide mb-1 text-glacier">Cost Template</label>
+                <Dropdown
+                  value={editForm.costTemplate}
+                  onChange={(v) => updateEditTemplate(v)}
+                  options={[
+                    { value: '', label: 'None' },
+                    ...templates.map((t) => ({ value: t._id, label: `${t.name} \u2014 \u20B9${templateTotal(t)}` })),
+                  ]}
+                />
               </div>
               <div>
-                <label className="block text-xs mb-1 text-glacier">Costing</label>
+                <label className="block text-[11px] uppercase tracking-wide mb-1 text-glacier">Costing</label>
                 <div className="flex gap-2">
                   <input
-                    className="input"
+                    className="input bg-black/30 border-white/10 text-[#F2F1EE] flex-1"
                     type="number"
                     value={editForm.costPrice}
                     onChange={(e) => updateEditField('costPrice', Number(e.target.value))}
                   />
                   {editForm.costTemplate && (
-                    <button type="button" className="btn-secondary text-xs whitespace-nowrap" onClick={recalcFromTemplate}>
+                    <button
+                      type="button"
+                      className="text-xs whitespace-nowrap px-4 rounded-full border border-[#E8B563]/50 text-[#E8B563] hover:bg-[#E8B563]/10"
+                      onClick={recalcFromTemplate}
+                    >
                       Recalc
                     </button>
                   )}
                 </div>
               </div>
               <div>
-                <label className="block text-xs mb-1 text-glacier">Reorder Level</label>
-                <input className="input" type="number" value={editForm.reorderLevel} onChange={(e) => updateEditField('reorderLevel', Number(e.target.value))} />
+                <label className="block text-[11px] uppercase tracking-wide mb-1 text-glacier">Reorder Level</label>
+                <input className="input bg-black/30 border-white/10 text-[#F2F1EE]" type="number" value={editForm.reorderLevel} onChange={(e) => updateEditField('reorderLevel', Number(e.target.value))} />
               </div>
               <div>
-                <label className="block text-xs mb-1 text-glacier">Status</label>
-                <select className="input" value={editForm.status} onChange={(e) => updateEditField('status', e.target.value)}>
-                  <option value="active">Active</option>
-                  <option value="inactive">Inactive</option>
-                </select>
+                <label className="block text-[11px] uppercase tracking-wide mb-1 text-glacier">Status</label>
+                <Dropdown
+                  value={editForm.status}
+                  onChange={(v) => updateEditField('status', v)}
+                  options={[
+                    { value: 'active', label: 'Active' },
+                    { value: 'inactive', label: 'Inactive' },
+                  ]}
+                />
               </div>
             </div>
-            <div className="mb-4">
-              <label className="block text-xs mb-1 text-glacier">Notes</label>
-              <textarea className="input" rows={3} value={editForm.notes} onChange={(e) => updateEditField('notes', e.target.value)} />
+            <div className="mb-5">
+              <label className="block text-[11px] uppercase tracking-wide mb-1 text-glacier">Notes</label>
+              <textarea
+                className="input bg-black/30 border-white/10 text-[#F2F1EE] placeholder:text-glacier"
+                rows={3}
+                placeholder={'Add any additional notes here\u2026'}
+                value={editForm.notes}
+                onChange={(e) => updateEditField('notes', e.target.value)}
+              />
             </div>
             <div className="flex justify-end gap-3">
-              <button type="button" className="btn-secondary" onClick={() => setShowEdit(false)}>
+              <button
+                type="button"
+                className="text-sm px-5 py-2.5 rounded-full border border-white/10 text-[#F2F1EE] hover:bg-white/5"
+                onClick={() => setShowEdit(false)}
+              >
                 Cancel
               </button>
-              <button type="submit" className="btn-primary">
+              <button
+                type="submit"
+                className="flex items-center gap-2 text-sm font-semibold px-5 py-2.5 rounded-full bg-gradient-to-b from-[#F2CD85] to-[#C9973F] text-black shadow-[0_4px_12px_rgba(232,181,99,0.35)]"
+              >
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2Z" /><path d="M17 21v-8H7v8M7 3v5h8" /></svg>
                 Save
               </button>
             </div>
