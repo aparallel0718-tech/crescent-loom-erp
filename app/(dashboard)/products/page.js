@@ -17,6 +17,11 @@ function currentPeriod() {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
 }
 
+function money(n) {
+  const v = Number(n) || 0;
+  return `\u20B9${v.toLocaleString('en-IN', { maximumFractionDigits: 2 })}`;
+}
+
 function emptyDesign() {
   return {
     name: '',
@@ -387,17 +392,29 @@ export default function ProductsPage() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-semibold text-[#F2F1EE]">Products &amp; Styles</h1>
-        {selectedIds.length > 0 && (
-          <button
-            type="button"
-            className="text-xs text-red-400 border border-red-400/40 rounded-full px-3 py-2 hover:bg-red-400/10"
-            onClick={handleBulkDelete}
-          >
-            Delete Selected ({selectedIds.length})
-          </button>
-        )}
+      <div className="flex items-start justify-between mb-6">
+        <div>
+          <p className="text-xs text-glacier mb-1 uppercase tracking-wide">Catalogue /</p>
+          <h1 className="text-3xl font-semibold">
+            <span className="text-[#F2F1EE]">Products &amp; </span>
+            <span className="text-[#E8B563]">Styles</span>
+          </h1>
+          <p className="text-sm text-glacier mt-1">Manage your products, variants and styles in one place.</p>
+        </div>
+        <div className="flex items-center gap-4">
+          <p className="hidden md:block text-sm italic text-[#E8B563]/80 text-right max-w-[220px]">
+            “Every product<br />has a story.”
+          </p>
+          {selectedIds.length > 0 && (
+            <button
+              type="button"
+              className="text-xs text-red-400 border border-red-400/40 rounded-full px-3 py-2 hover:bg-red-400/10 whitespace-nowrap"
+              onClick={handleBulkDelete}
+            >
+              Delete Selected ({selectedIds.length})
+            </button>
+          )}
+        </div>
       </div>
 
       {error && <p className="text-sm text-red-400 mb-3">{error}</p>}
@@ -504,12 +521,12 @@ export default function ProductsPage() {
                     <td>{row.category}</td>
                     <td>{row.size}</td>
                     <td>{row.colour}</td>
-                    <td>{'\u20B9'}{row.sellingPrice}</td>
+                    <td>{money(row.sellingPrice)}</td>
                     <td>
-                      {'\u20B9'}{row.costPrice}
+                      {money(row.costPrice)}
                       {isStale && (
                         <div className="text-xs text-amber-400 mt-1">
-                          Template changed: {'\u20B9'}{row.costTemplateAppliedTotal} {'\u2192'} {'\u20B9'}{currentTplTotal}{' '}
+                          Template changed: {money(row.costTemplateAppliedTotal)} {'\u2192'} {money(currentTplTotal)}{' '}
                           <button type="button" className="underline" onClick={() => quickRecalc(row)}>
                             Update
                           </button>
@@ -694,7 +711,7 @@ export default function ProductsPage() {
                   onChange={(v) => updateDesignTemplate(v)}
                   options={[
                     { value: '', label: 'None (enter manually)' },
-                    ...templates.map((t) => ({ value: t._id, label: `${t.name} \u2014 \u20B9${templateTotal(t)}` })),
+                    ...templates.map((t) => ({ value: t._id, label: `${t.name} \u2014 ${money(templateTotal(t))}` })),
                   ]}
                 />
               </div>
@@ -898,7 +915,7 @@ export default function ProductsPage() {
                   onChange={(v) => updateEditTemplate(v)}
                   options={[
                     { value: '', label: 'None' },
-                    ...templates.map((t) => ({ value: t._id, label: `${t.name} \u2014 \u20B9${templateTotal(t)}` })),
+                    ...templates.map((t) => ({ value: t._id, label: `${t.name} \u2014 ${money(templateTotal(t))}` })),
                   ]}
                 />
               </div>
