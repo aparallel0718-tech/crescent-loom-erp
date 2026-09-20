@@ -96,11 +96,9 @@ export default function TopNav({ role, name }) {
     <header ref={containerRef} className="sticky top-0 z-40">
       <div className="flex items-center justify-between gap-4 px-6 py-3">
         <Link href="/dashboard" className="flex items-center gap-3 shrink-0">
-          <div className="w-10 h-10 rounded-full border-2 border-gold flex items-center justify-center shrink-0 overflow-hidden bg-black/20">
-            <Image src="/logo.png" alt="Crescent Loom" width={28} height={28} className="object-contain" priority />
-          </div>
+          <Image src="/logo.png" alt="Crescent Loom" width={40} height={40} className="object-contain shrink-0" priority />
           <div className="hidden sm:block">
-            <Image src="/logo-name.png" alt="Crescent Loom" width={130} height={20} className="object-contain" priority />
+            <Image src="/logo-name.png" alt="Crescent Loom" width={170} height={26} className="object-contain" priority />
             <p className="text-[10px] text-glacier mt-0.5">Business OS</p>
           </div>
         </Link>
