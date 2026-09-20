@@ -1,5 +1,6 @@
 'use client';
 import { useState, useRef, useEffect } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { signOut } from 'next-auth/react';
@@ -94,15 +95,15 @@ export default function TopNav({ role, name }) {
   return (
     <header ref={containerRef} className="sticky top-0 z-40">
       <div className="flex items-center justify-between gap-4 px-6 py-3">
-        <div className="flex items-center gap-3 shrink-0">
-          <div className="w-10 h-10 rounded-full border-2 border-gold flex items-center justify-center text-gold font-serif text-lg shrink-0">
-            C
+        <Link href="/dashboard" className="flex items-center gap-3 shrink-0">
+          <div className="w-10 h-10 rounded-full border-2 border-gold flex items-center justify-center shrink-0 overflow-hidden bg-black/20">
+            <Image src="/logo.png" alt="Crescent Loom" width={28} height={28} className="object-contain" priority />
           </div>
           <div className="hidden sm:block">
-            <p className="text-sm font-semibold leading-none text-[#F2F1EE]">Crescent Loom</p>
+            <Image src="/logo-name.png" alt="Crescent Loom" width={130} height={20} className="object-contain" priority />
             <p className="text-[10px] text-glacier mt-0.5">Business OS</p>
           </div>
-        </div>
+        </Link>
 
                         <nav className={`hidden md:flex items-center gap-1 rounded-full px-2 py-2 ${glass}`} onMouseLeave={closeSoon}>
           {groups.map((group) => {
